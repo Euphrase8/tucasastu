@@ -1,0 +1,196 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* TUCASA STU Design System - Professional Adventist Organization Theme
+All colors MUST be HSL. Spiritual, trustworthy, modern design.
+*/
+
+@layer base {
+  :root {
+    /* Core Brand Colors - Deep Navy & Gold Theme */
+    --background: 0 0% 100%;
+    --foreground: 221 39% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 221 39% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 221 39% 11%;
+
+    /* Primary: Deep Navy Blue - Trust, Spirituality, Depth */
+    --primary: 221 39% 11%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Soft Blue-Gray - Professional, Calm */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 221 39% 11%;
+
+    /* Muted: Light Blue-Gray - Subtle backgrounds */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    /* Accent: Warm Gold - Divine Light, Inspiration */
+    --accent: 43 74% 66%;
+    --accent-foreground: 221 39% 11%;
+
+    /* Spiritual Gold - For special highlights */
+    --gold: 43 74% 66%;
+    --gold-foreground: 221 39% 11%;
+
+    /* Divine Light - Soft gold for backgrounds */
+    --divine-light: 48 100% 97%;
+    --divine-light-foreground: 221 39% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 221 39% 11%;
+
+    --radius: 0.75rem;
+
+    /* Beautiful Gradients - Spiritual & Professional */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(221 39% 18%));
+    --gradient-divine: linear-gradient(135deg, hsl(var(--accent)), hsl(48 100% 88%));
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--divine-light)));
+
+    /* Elegant Shadows & Effects */
+    --shadow-soft: 0 4px 20px -4px hsl(var(--primary) / 0.1);
+    --shadow-divine: 0 8px 32px -8px hsl(var(--accent) / 0.3);
+    --shadow-card: 0 2px 16px -4px hsl(var(--primary) / 0.08);
+
+    /* Smooth Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* Dark Mode - Spiritual Night Theme */
+    --background: 221 39% 4%;
+    --foreground: 0 0% 98%;
+
+    --card: 221 39% 6%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 221 39% 6%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 221 39% 11%;
+
+    --secondary: 221 39% 10%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 221 39% 10%;
+    --muted-foreground: 220 9% 65%;
+
+    --accent: 43 74% 66%;
+    --accent-foreground: 221 39% 11%;
+
+    --gold: 43 74% 66%;
+    --gold-foreground: 221 39% 11%;
+
+    --divine-light: 221 39% 8%;
+    --divine-light-foreground: 0 0% 98%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 221 39% 18%;
+    --input: 221 39% 18%;
+    --ring: 43 74% 66%;
+
+    /* Dark Mode Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(43 74% 66%));
+    --gradient-divine: linear-gradient(135deg, hsl(var(--accent)), hsl(48 100% 60%));
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--divine-light)));
+
+    --sidebar-background: 221 39% 4%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 43 74% 66%;
+    --sidebar-primary-foreground: 221 39% 11%;
+    --sidebar-accent: 221 39% 10%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 221 39% 18%;
+    --sidebar-ring: 43 74% 66%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Typography Scale */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  /* Hero Section Styles */
+  .hero-gradient {
+    background: var(--gradient-hero);
+  }
+
+  .divine-gradient {
+    background: var(--gradient-divine);
+  }
+
+  .subtle-gradient {
+    background: var(--gradient-subtle);
+  }
+
+  /* Shadow Utilities */
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .shadow-divine {
+    box-shadow: var(--shadow-divine);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Transition Utilities */
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+
+  .transition-slow {
+    transition: var(--transition-slow);
+  }
+
+  /* Text Gradients */
+  .text-gradient-divine {
+    background: var(--gradient-divine);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
