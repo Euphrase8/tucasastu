@@ -2,12 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Mail, Phone, ArrowRight } from 'lucide-react';
-import { getLeaders } from '@/services/leaders';
+import { Users, Phone, ArrowRight } from 'lucide-react';
 
-const Leadership = () => {
-  const [leaders, setLeaders] = useState<any[]>([]);
-  const [chaplains, setChaplains] = useState<any[]>([]);
+interface Leader {
+  ID: number;
+  Name: string;
+  Title?: string;
+  Image?: string;
+  Contact?: string;
+}
+
+const Leadership: React.FC = () => {
+  const [leaders, setLeaders] = useState<Leader[]>([]);
+  const [chaplains, setChaplains] = useState<Leader[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -17,12 +24,14 @@ const Leadership = () => {
   const fetchLeaders = async () => {
     setLoading(true);
     try {
-      const data = await getLeaders();
+      const response = await fetch('https://api.tucasastu.com/api/chaplaincy-leaders');
+      if (!response.ok) throw new Error('Failed to fetch leaders');
+      const data: Leader[] = await response.json();
       setLeaders(data);
 
-      // Filter chaplains from all leaders
-      const filteredChaplains = data.filter((leader: any) =>
-        leader.role.toLowerCase().includes('chaplain')
+      // Filter chaplains
+      const filteredChaplains = data.filter(
+        (leader) => leader.Title?.toLowerCase() === 'chaplain'
       );
       setChaplains(filteredChaplains);
     } catch (error) {
@@ -54,63 +63,59 @@ const Leadership = () => {
         {loading ? (
           <p className="text-center text-muted-foreground">Loading chaplains...</p>
         ) : chaplains.length > 0 ? (
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
+          <div
+            className={`grid gap-6 mb-12 ${
+              chaplains.length === 1
+                ? 'justify-items-center'
+                : 'sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+            }`}
+          >
             {chaplains.map((chaplain, index) => (
               <Card
-                key={index}
-                className="group overflow-hidden shadow-card hover:shadow-divine transition-all duration-300 border-0 animate-fade-in"
-                style={{ animationDelay: `${index * 200}ms` }}
+                key={chaplain.ID}
+                className="group overflow-hidden shadow-card hover:shadow-divine transition-all duration-300 border-0 animate-fade-in max-w-xs w-full"
+                style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="relative aspect-[4/5] overflow-hidden">
-                  {chaplain.image ? (
+                <div className="relative w-full h-64 sm:h-60 md:h-64 overflow-hidden rounded-xl">
+                  {chaplain.Image ? (
                     <img
-                      src={chaplain.image}
-                      alt={chaplain.name}
+                      src={`https://api.tucasastu.com/${chaplain.Image}`}
+                      alt={chaplain.Name || 'Chaplain'}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
                       <span className="text-white font-semibold text-2xl">
-                        {chaplain.name.split(' ').map((n: string) => n[0]).join('')}
+                        {chaplain.Name?.split(' ').map((n) => n[0]).join('')}
                       </span>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute top-4 left-4">
                     <Badge variant="secondary" className="bg-gold/90 text-gold-foreground">
                       Chaplain
                     </Badge>
                   </div>
                 </div>
-                <CardContent className="p-6">
-                  <h3 className="font-bold text-xl mb-2 group-hover:text-primary transition-colors">
-                    {chaplain.name}
+                <CardContent className="p-4">
+                  <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors">
+                    {chaplain.Name}
                   </h3>
-                  <p className="text-primary font-medium mb-4">{chaplain.role}</p>
-                  <p className="text-sm text-muted-foreground mb-6 line-clamp-3">
-                    {chaplain.bio}
-                  </p>
-                  <div className="space-y-3 mb-6">
-                    {chaplain.email && (
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Mail className="h-4 w-4 mr-2 text-primary" />
-                        {chaplain.email}
-                      </div>
-                    )}
-                    {chaplain.phone && (
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Phone className="h-4 w-4 mr-2 text-primary" />
-                        {chaplain.phone}
-                      </div>
-                    )}
-                  </div>
-                  <Button
-                    variant="outline"
-                    className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                    onClick={() => window.location.href = `mailto:${chaplain.email}`}
-                  >
-                    Contact Chaplain
-                  </Button>
+                  <p className="text-primary font-medium mb-3 text-sm">{chaplain.Title}</p>
+                  {chaplain.Contact && (
+                    <div className="flex items-center text-sm text-muted-foreground mb-4">
+                      <Phone className="h-4 w-4 mr-2 text-primary" />
+                      {chaplain.Contact}
+                    </div>
+                  )}
+                  {chaplain.Contact && (
+                    <Button
+                      variant="outline"
+                      className="w-full text-sm group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                      onClick={() => window.location.href = `tel:${chaplain.Contact}`}
+                    >
+                      Contact Chaplain
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -119,9 +124,7 @@ const Leadership = () => {
           <div className="text-center py-16">
             <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">No Chaplain Uploaded</h3>
-            <p className="text-muted-foreground">
-              Currently, no chaplains are available. Please check back later.
-            </p>
+            <p className="text-muted-foreground">Currently, no chaplains are available. Please check back later.</p>
           </div>
         )}
 

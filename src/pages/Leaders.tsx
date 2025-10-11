@@ -58,14 +58,14 @@ const Leaders = () => {
   // Filter leaders by level
   const filteredLeaders = activeFilter === 'all' 
     ? leaders 
-    : leaders.filter((leader) => leader.Level?.toLowerCase() === activeFilter);
+    : leaders.filter((leader) => leader.Title?.toLowerCase() === activeFilter);
 
   const filterCategories = [
     { id: 'all', label: 'All Leaders', count: leaders.length },
-    { id: 'national', label: 'National', count: leaders.filter(l => l.Level?.toLowerCase() === 'national').length },
-    { id: 'chaplain', label: 'Chaplains', count: leaders.filter(l => l.Level?.toLowerCase() === 'chaplain').length },
-    { id: 'zonal', label: 'Zonal', count: leaders.filter(l => l.Level?.toLowerCase() === 'zonal').length },
-    { id: 'federation', label: 'Federation', count: leaders.filter(l => l.Level?.toLowerCase() === 'federation').length },
+    { id: 'chaplain', label: 'Chaplains', count: leaders.filter(l => l.Title?.toLowerCase() === 'chaplain').length },
+    { id: 'zonal chairperson', label: 'Zonal Chairpersons', count: leaders.filter(l => l.Title?.toLowerCase() === 'zonal chairperson').length },
+    { id: 'union chairperson', label: 'Union Chairpersons', count: leaders.filter(l => l.Title?.toLowerCase() === 'union chairperson').length },
+    { id: 'zonal secretary', label: 'Zonal Secretaries', count: leaders.filter(l => l.Title?.toLowerCase() === 'zonal secretary').length },
   ];
 
   return (
@@ -96,7 +96,7 @@ const Leaders = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <Filter className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Filter by level:</span>
+                <span className="text-sm text-muted-foreground">Filter by title:</span>
               </div>
             </div>
 
@@ -139,42 +139,23 @@ const Leaders = () => {
                     <div className="absolute top-3 left-3">
                       <Badge
                         variant="secondary"
-                        className={`bg-white/90 ${
-                          leader.Level?.toLowerCase() === 'national' ? 'text-primary' :
-                          leader.Level?.toLowerCase() === 'chaplain' ? 'text-gold' :
-                          leader.Level?.toLowerCase() === 'zonal' ? 'text-accent' :
-                          'text-muted-foreground'
-                        }`}
+                        className="bg-white/90 text-gold"
                       >
-                        {leader.Level}
+                        {leader.Title}
                       </Badge>
                     </div>
                   </div>
                   <CardContent className="p-6">
                     <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors">{leader.Name}</h3>
                     <p className="text-sm text-primary font-medium mb-2">{leader.Title}</p>
-                    <p className="text-sm text-muted-foreground mb-3">{leader.Institution}</p>
-
                     <div className="space-y-2 mb-4">
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <MapPin className="h-3 w-3 mr-1" />
-                        {leader.Zone}
-                      </div>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <Mail className="h-3 w-3 mr-1" />
-                        {leader.Email}
-                      </div>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <Phone className="h-3 w-3 mr-1" />
-                        {leader.Contact}
-                      </div>
+                      {leader.Contact && (
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <Phone className="h-3 w-3 mr-1" />
+                          {leader.Contact}
+                        </div>
+                      )}
                     </div>
-
-                    <p className="text-xs text-muted-foreground line-clamp-3 mb-4">{leader.Bio}</p>
-
-                    <Button variant="outline" size="sm" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                      Contact Leader
-                    </Button>
                   </CardContent>
                 </Card>
               ))
