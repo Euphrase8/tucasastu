@@ -4,6 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Clock, Users, ArrowRight } from 'lucide-react';
 
+// Material UI Icons
+import SpiritualIcon from '@mui/icons-material/EmojiPeople';
+import LeadershipIcon from '@mui/icons-material/Groups'; 
+import SportsIcon from '@mui/icons-material/SportsSoccer'; 
+import AcademicIcon from '@mui/icons-material/School'; 
+
 const Events = () => {
   const upcomingEvents = [
     {
@@ -56,6 +62,33 @@ const Events = () => {
       title: "Southern Tanzania Union Youth Convention",
       date: "August 2024",
       impact: "1,000+ youth gathered for worship and fellowship"
+    }
+  ];
+
+  const categories = [
+    {
+      title: "Spiritual Programs",
+      description: "Prayer weeks, evangelistic campaigns, baptisms",
+      icon: <SpiritualIcon className="text-4xl mb-4 mx-auto text-primary" />,
+      count: "12+ annually"
+    },
+    {
+      title: "Leadership Training",
+      description: "Workshops, seminars, skill development",
+      icon: <LeadershipIcon className="text-4xl mb-4 mx-auto text-primary" />,
+      count: "8+ sessions"
+    },
+    {
+      title: "Sports & Recreation",
+      description: "Inter-university competitions, fun activities",
+      icon: <SportsIcon className="text-4xl mb-4 mx-auto text-primary" />,
+      count: "6+ tournaments"
+    },
+    {
+      title: "Academic Excellence",
+      description: "Study groups, career guidance, scholarships",
+      icon: <AcademicIcon className="text-4xl mb-4 mx-auto text-primary" />,
+      count: "Year-round"
     }
   ];
 
@@ -152,35 +185,10 @@ const Events = () => {
         <div className="mb-16">
           <h3 className="text-2xl font-bold mb-8">Event Categories</h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                title: "Spiritual Programs",
-                description: "Prayer weeks, evangelistic campaigns, baptisms",
-                icon: "🙏",
-                count: "12+ annually"
-              },
-              {
-                title: "Leadership Training",
-                description: "Workshops, seminars, skill development",
-                icon: "👥",
-                count: "8+ sessions"
-              },
-              {
-                title: "Sports & Recreation",
-                description: "Inter-university competitions, fun activities",
-                icon: "⚽",
-                count: "6+ tournaments"
-              },
-              {
-                title: "Academic Excellence",
-                description: "Study groups, career guidance, scholarships",
-                icon: "📚",
-                count: "Year-round"
-              }
-            ].map((category, index) => (
+            {categories.map((category, index) => (
               <Card key={index} className="text-center shadow-card hover:shadow-soft transition-smooth group">
                 <CardContent className="p-6">
-                  <div className="text-4xl mb-4">{category.icon}</div>
+                  {category.icon}
                   <h4 className="font-semibold mb-2">{category.title}</h4>
                   <p className="text-sm text-muted-foreground mb-3">{category.description}</p>
                   <Badge variant="outline" className="text-xs">{category.count}</Badge>
