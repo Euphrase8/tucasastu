@@ -24,23 +24,20 @@ const ManageLeaders = ({ leaderType = "" }: { leaderType?: string }) => {
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  const safeLeaderType = leaderType.toLowerCase();
-
-  // Titles: chaplain-specific or general
-  const titleOptions = safeLeaderType === "chaplain"
-    ? [
-        "Senior Chaplain",
-        "Assistant Chaplain",
-        "Youth Chaplain",
-        "Women Chaplain",
-        "Chaplain Coordinator"
-      ]
-    : [
-        "Union Chair Person",
-        "Secretary",
-        "Treasurer",
-        "Coordinator"
-      ];
+  // Titles for all leader types
+  const titleOptions = [
+    "Chaplain",
+    "Zonal Chairperson",
+    "Union Chairperson",
+    "Zonal Secretary",
+    "Deputy Zonal Chairperson",
+    "Treasurer",
+    "Coordinator",
+    "Secretary",
+    "Assistant Chaplain",
+    "Youth Chaplain",
+    "Women Chaplain"
+  ];
 
   const [formData, setFormData] = useState({
     Name: "",
@@ -79,7 +76,7 @@ const ManageLeaders = ({ leaderType = "" }: { leaderType?: string }) => {
       const fd = new FormData();
       fd.append("name", formData.Name);
       fd.append("contact", formData.contact);
-      fd.append("title", formData.Title); // single sentence, no - 
+      fd.append("title", formData.Title); // no concatenation, just use the value
 
       if (imageFile) fd.append("image", imageFile);
 
