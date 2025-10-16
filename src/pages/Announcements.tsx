@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, ArrowRight, Bell, Megaphone } from "lucide-react";
-import { fetchAnnouncements } from "@/services/posts";
+import { fetchAnnouncements } from "@/services/announcements";
 import { useToast } from "@/hooks/use-toast";
 
 const AnnouncementsPage = () => {
@@ -67,7 +67,7 @@ const AnnouncementsPage = () => {
             {!loading && (
               <div className="grid lg:grid-cols-3 gap-6 mb-8">
                 {announcements.map((a, i) => (
-                  <Card key={a._id} className="group overflow-hidden shadow-card hover:shadow-divine transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm animate-fade-in" style={{ animationDelay: `${i * 150}ms` }}>
+                  <Card key={a.ID} className="group overflow-hidden shadow-card hover:shadow-divine transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm animate-fade-in" style={{ animationDelay: `${i * 150}ms` }}>
                     <div className="relative aspect-[16/10] overflow-hidden">
                       <img
                         src={a.image || "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&h=400&fit=crop"}

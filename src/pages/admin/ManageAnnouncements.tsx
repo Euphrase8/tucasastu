@@ -4,288 +4,248 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
-import { Plus, Edit, Trash2, Search, Filter, Award, Phone, Mail, Upload } from "lucide-react";
+import { Plus, Edit, Trash2, Search, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getLeaders, addLeader, updateLeader, deleteLeader } from "@/services/leaders";
+import {
+  fetchAnnouncements,
+  createAnnouncement,
+  updateAnnouncement,
+  deleteAnnouncement,
+} from "@/services/announcements";
 
-const LEVEL_COLORS: Record<string, string> = {
-  national: "bg-blue-500",
-  regional: "bg-green-500",
-  zonal: "bg-orange-500",
-  branch: "bg-purple-500",
-};
+const API_BASE = import.meta.env.VITE_BASE_URL || "https://api.tucasastu.com";
 
-const ManageLeaders = () => {
+// ---------------- Announcement Form ----------------
+interface AnnouncementFormProps {
+  formData: any;
+  setFormData: any;
+  loading: boolean;
+  onSubmit: () => void;
+  isEdit?: boolean;
+}
+const AnnouncementForm = ({ formData, setFormData, loading, onSubmit, isEdit = false }: AnnouncementFormProps) => (
+  <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
+    <div className="space-y-2">
+      <Label>Title</Label>
+      <Input
+        value={formData.Title}
+        onChange={(e) => setFormData({ ...formData, Title: e.target.value })}
+        required
+      />
+    </div>
+
+    <div className="space-y-2">
+      <Label>Description</Label>
+      <Textarea
+        value={formData.Description}
+        onChange={(e) => setFormData({ ...formData, Description: e.target.value })}
+        className="min-h-[100px]"
+        required
+      />
+    </div>
+
+    <div className="space-y-2">
+      <Label>Image {isEdit ? "(optional)" : ""}</Label>
+      <Input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setFormData({ ...formData, Image: e.target.files?.[0] || null })}
+      />
+    </div>
+
+    <div className="space-y-2">
+      <Label>Attachment (PDF) {isEdit ? "(optional)" : ""}</Label>
+      <Input
+        type="file"
+        accept="application/pdf"
+        onChange={(e) => setFormData({ ...formData, Attachment: e.target.files?.[0] || null })}
+      />
+    </div>
+
+    <Button type="submit" className="w-full" disabled={loading}>
+      {loading ? (isEdit ? "Updating..." : "Creating...") : isEdit ? "Update Announcement" : "Add Announcement"}
+    </Button>
+  </form>
+);
+
+// ---------------- Manage Announcements ----------------
+const ManageAnnouncements = () => {
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterLevel, setFilterLevel] = useState("all");
-  const [leaders, setLeaders] = useState<any[]>([]);
+  const [announcements, setAnnouncements] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [selectedLeader, setSelectedLeader] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: "",
-    role: "",
-    level: "",
-    institution: "",
-    email: "",
-    phone: "",
-    location: "",
-    tenure: "",
-    bio: "",
+    Title: "",
+    Description: "",
+    Image: null as File | string | null,
+    Attachment: null as File | string | null,
   });
 
-  useEffect(() => {
-    fetchLeaders();
-    const interval = setInterval(fetchLeaders, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  useEffect(() => { fetchAllAnnouncements(); }, []);
 
-  const fetchLeaders = async () => {
+  // Fetch all announcements
+  const fetchAllAnnouncements = async () => {
     try {
-      const data = await getLeaders();
-      setLeaders(data);
+      const data = await fetchAnnouncements();
+      setAnnouncements(Array.isArray(data) ? data.reverse() : []);
     } catch (err) {
       console.error(err);
+      toast({ title: "Error", description: "Failed to fetch announcements", variant: "destructive" });
     }
   };
 
+  // Create or update
   const handleFormSubmit = async (isEdit = false) => {
+    if (!formData.Title.trim()) {
+      toast({ title: "Error", description: "Title is required", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
     try {
       const fd = new FormData();
-      Object.entries(formData).forEach(([key, value]) => fd.append(key, value));
-      if (imageFile) fd.append("image", imageFile);
+      fd.append("title", formData.Title);
+      fd.append("description", formData.Description);
+      if (formData.Image instanceof File) fd.append("image", formData.Image);
+      if (formData.Attachment instanceof File) fd.append("attachment", formData.Attachment);
 
-      if (isEdit && selectedLeader) {
-        await updateLeader(selectedLeader._id, fd);
-        toast({ title: "Success", description: "Leader updated successfully" });
+      if (isEdit && selectedAnnouncement) {
+        await updateAnnouncement(selectedAnnouncement.ID, fd);
+        toast({ title: "Updated", description: "Announcement updated successfully" });
         setIsEditDialogOpen(false);
       } else {
-        await addLeader(fd);
-        toast({ title: "Success", description: "Leader added successfully" });
+        await createAnnouncement(fd);
+        toast({ title: "Created", description: "Announcement created successfully" });
         setIsAddDialogOpen(false);
       }
 
-      setFormData({
-        name: "",
-        role: "",
-        level: "",
-        institution: "",
-        email: "",
-        phone: "",
-        location: "",
-        tenure: "",
-        bio: "",
-      });
-      setImageFile(null);
-      await fetchLeaders();
+      setFormData({ Title: "", Description: "", Image: null, Attachment: null });
+      await fetchAllAnnouncements();
     } catch (err: any) {
-      toast({
-        title: "Error",
-        description: err.response?.data?.message || "Something went wrong",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+      toast({ title: "Error", description: err.response?.data?.error || "Something went wrong", variant: "destructive" });
+    } finally { setLoading(false); }
   };
 
+  // Delete
   const handleDelete = async () => {
-    if (!selectedLeader) return;
+    if (!selectedAnnouncement) return;
     setLoading(true);
     try {
-      await deleteLeader(selectedLeader._id);
-      toast({ title: "Deleted", description: "Leader deleted successfully" });
+      await deleteAnnouncement(selectedAnnouncement.ID);
+      toast({ title: "Deleted", description: "Announcement deleted successfully" });
       setDeleteDialogOpen(false);
-      await fetchLeaders();
+      await fetchAllAnnouncements();
     } catch (err: any) {
-      toast({
-        title: "Error",
-        description: err.response?.data?.message || "Failed to delete",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+      toast({ title: "Error", description: err.response?.data?.message || "Failed to delete", variant: "destructive" });
+    } finally { setLoading(false); }
   };
 
-  const openEditDialog = (leader: any) => {
-    setSelectedLeader(leader);
+  // Open edit dialog
+  const openEditDialog = (announcement: any) => {
+    setSelectedAnnouncement(announcement);
     setFormData({
-      name: leader.name || "",
-      role: leader.role || "",
-      level: leader.level || "",
-      institution: leader.institution || "",
-      email: leader.email || "",
-      phone: leader.phone || "",
-      location: leader.location || "",
-      tenure: leader.tenure || "",
-      bio: leader.bio || "",
+      Title: announcement.Title || "",
+      Description: announcement.Description || "",
+      Image: announcement.Image || null,
+      Attachment: announcement.Attachment || null,
     });
-    setImageFile(null);
     setIsEditDialogOpen(true);
   };
 
-  const filteredLeaders = leaders.filter((l) => {
-    const searchMatch = l.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        l.role.toLowerCase().includes(searchTerm.toLowerCase());
-    const filterMatch = filterLevel === "all" || l.level === filterLevel;
-    return searchMatch && filterMatch;
-  });
+  // Filtered search
+  const filteredAnnouncements = announcements.filter((a) =>
+    a.Title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    a.Description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getMediaUrl = (path: string) => {
+    if (!path) return "/placeholder-image.jpg";
+    const cleanPath = path.startsWith("/") ? path : `/${path}`;
+    const base = API_BASE.endsWith("/") ? API_BASE.slice(0, -1) : API_BASE;
+    return `${base}${cleanPath}`;
+  };
 
   return (
     <AdminLayout>
       <div className="p-8 space-y-8">
+
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Manage Leaders
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-[#3e8391] to-[#2f557f] bg-clip-text text-transparent">
+              Manage Announcements
             </h1>
-            <p className="text-muted-foreground">Add, edit, and organize leadership structure</p>
+            <p className="text-muted-foreground">Add, edit, and organize announcements</p>
           </div>
+
+          {/* Add Announcement */}
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
-                Add New Leader
+                Add Announcement
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Add New Leader</DialogTitle>
-              </DialogHeader>
-              <LeaderForm 
-                formData={formData} 
-                setFormData={setFormData} 
-                imageFile={imageFile} 
-                setImageFile={setImageFile} 
-                loading={loading} 
-                onSubmit={() => handleFormSubmit(false)}
-              />
+              <DialogHeader><DialogTitle>Add New Announcement</DialogTitle></DialogHeader>
+              <AnnouncementForm formData={formData} setFormData={setFormData} loading={loading} onSubmit={() => handleFormSubmit(false)} />
             </DialogContent>
           </Dialog>
         </div>
 
-        {/* Filters */}
-        <Card>
-          <CardContent className="p-6 flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search leaders..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={filterLevel} onValueChange={setFilterLevel}>
-              <SelectTrigger className="w-full md:w-[200px] flex items-center">
-                <Filter className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Filter by level" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Levels</SelectItem>
-                <SelectItem value="national">National</SelectItem>
-                <SelectItem value="regional">Regional</SelectItem>
-                <SelectItem value="zonal">Zonal</SelectItem>
-                <SelectItem value="branch">Branch</SelectItem>
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
+        {/* Search */}
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search announcements..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+        </div>
 
-        {/* Leaders Grid */}
-        {filteredLeaders.length > 0 ? (
+        {/* Announcements Grid */}
+        {filteredAnnouncements.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredLeaders.map((leader) => (
-              <Card key={leader._id} className="hover:shadow-lg transition-shadow">
+            {filteredAnnouncements.map((a) => (
+              <Card key={a.ID} className="hover:shadow-xl transition-shadow rounded-lg overflow-hidden">
+                {a.Image && <img src={getMediaUrl(a.Image)} alt={a.Title} className="h-48 w-full object-cover rounded-t-lg" onError={(e) => (e.currentTarget.src = "/placeholder-image.jpg")} />}
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      {leader.image ? (
-                        <img src={leader.image} alt={leader.name} className="w-12 h-12 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center">
-                          <span className="text-white font-semibold">
-                            {leader.name.split(" ").map((n: string) => n[0]).join("")}
-                          </span>
-                        </div>
+                    <div>
+                      <CardTitle className="text-lg font-semibold text-gray-900">{a.Title}</CardTitle>
+                      <p className="text-sm text-gray-700">{a.Description}</p>
+                      {a.Attachment && (
+                        <a href={getMediaUrl(a.Attachment)} target="_blank" className="flex items-center text-blue-600 mt-2">
+                          <FileText className="mr-1 h-4 w-4" /> View Attachment
+                        </a>
                       )}
-                      <div>
-                        <CardTitle className="text-lg">{leader.name}</CardTitle>
-                        <Badge className={`${LEVEL_COLORS[leader.level] || "bg-gray-500"} text-white border-none`}>
-                          {leader.role}
-                        </Badge>
-                      </div>
+                      {a.CreatedAt && <p className="text-xs text-muted-foreground mt-1">{new Date(a.CreatedAt).toLocaleDateString()}</p>}
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => openEditDialog(leader)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => { setSelectedLeader(leader); setDeleteDialogOpen(true); }}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => openEditDialog(a)}><Edit className="h-4 w-4" /></Button>
+                      <Button variant="outline" size="sm" onClick={() => { setSelectedAnnouncement(a); setDeleteDialogOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  {leader.institution && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Award className="h-4 w-4 text-primary" />
-                      <span>{leader.institution}</span>
-                    </div>
-                  )}
-                  {leader.email && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Mail className="h-4 w-4 text-primary" />
-                      <span className="truncate">{leader.email}</span>
-                    </div>
-                  )}
-                  {leader.phone && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Phone className="h-4 w-4 text-primary" />
-                      <span>{leader.phone}</span>
-                    </div>
-                  )}
-                </CardContent>
               </Card>
             ))}
           </div>
         ) : (
           <div className="text-center py-16">
-            <Award className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No Leaders Found</h3>
-            <p className="text-muted-foreground">Try adjusting your search or filters.</p>
+            <p className="text-muted-foreground">No announcements found. Try adding a new one.</p>
           </div>
         )}
 
         {/* Edit Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Edit Leader</DialogTitle>
-            </DialogHeader>
-            <LeaderForm 
-              formData={formData} 
-              setFormData={setFormData} 
-              imageFile={imageFile} 
-              setImageFile={setImageFile} 
-              loading={loading} 
-              onSubmit={() => handleFormSubmit(true)} 
-              isEdit
-            />
+            <DialogHeader><DialogTitle>Edit Announcement</DialogTitle></DialogHeader>
+            <AnnouncementForm formData={formData} setFormData={setFormData} loading={loading} onSubmit={() => handleFormSubmit(true)} isEdit />
           </DialogContent>
         </Dialog>
 
@@ -294,8 +254,8 @@ const ManageLeaders = () => {
           open={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}
           onConfirm={handleDelete}
-          title="Delete Leader"
-          description="Are you sure you want to delete this leader? This action cannot be undone."
+          title="Delete Announcement"
+          description="Are you sure you want to delete this announcement? This action cannot be undone."
           confirmText="Delete"
         />
       </div>
@@ -303,79 +263,4 @@ const ManageLeaders = () => {
   );
 };
 
-export default ManageLeaders;
-
-// Reusable Leader Form Component
-interface LeaderFormProps {
-  formData: any;
-  setFormData: any;
-  imageFile: File | null;
-  setImageFile: any;
-  loading: boolean;
-  onSubmit: () => void;
-  isEdit?: boolean;
-}
-
-const LeaderForm = ({ formData, setFormData, imageFile, setImageFile, loading, onSubmit, isEdit = false }: LeaderFormProps) => (
-  <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
-    <div className="grid grid-cols-2 gap-4">
-      <div className="space-y-2">
-        <Label>Full Name</Label>
-        <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required={!isEdit} />
-      </div>
-      <div className="space-y-2">
-        <Label>Position/Role</Label>
-        <Input value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} required={!isEdit} />
-      </div>
-    </div>
-
-    <div className="grid grid-cols-2 gap-4">
-      <div className="space-y-2">
-        <Label>Leadership Level</Label>
-        <Select value={formData.level} onValueChange={(v) => setFormData({ ...formData, level: v })}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select level" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="national">National</SelectItem>
-            <SelectItem value="regional">Regional</SelectItem>
-            <SelectItem value="zonal">Zonal</SelectItem>
-            <SelectItem value="branch">Branch</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label>Institution</Label>
-        <Input value={formData.institution} onChange={(e) => setFormData({ ...formData, institution: e.target.value })} />
-      </div>
-    </div>
-
-    <div className="grid grid-cols-2 gap-4">
-      <div className="space-y-2">
-        <Label>Email</Label>
-        <Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required={!isEdit} />
-      </div>
-      <div className="space-y-2">
-        <Label>Phone</Label>
-        <Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
-      </div>
-    </div>
-
-    <div className="space-y-2">
-      <Label>Profile Image {isEdit ? "(leave empty to keep current)" : ""}</Label>
-      <div className="flex items-center gap-2">
-        <Input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} />
-        <Upload className="h-4 w-4 text-muted-foreground" />
-      </div>
-    </div>
-
-    <div className="space-y-2">
-      <Label>Biography</Label>
-      <Textarea value={formData.bio} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} className="min-h-[100px]" />
-    </div>
-
-    <Button type="submit" className="w-full" disabled={loading}>
-      {loading ? (isEdit ? "Updating..." : "Adding...") : isEdit ? "Update Leader" : "Add Leader"}
-    </Button>
-  </form>
-);
+export default ManageAnnouncements;

@@ -23,7 +23,7 @@ const Leaders = () => {
       try {
         setLoading(true);
         setError('');
-        const response = await fetch('https://api.tucasastu.com/api/chaplaincy-leaders');
+        const response = await fetch('http://192.168.1.164:8080/api/chaplaincy-leaders');
         if (!response.ok) throw new Error('Failed to fetch leaders');
         const result = await response.json();
         setLeaders(result || []);
@@ -132,7 +132,7 @@ const Leaders = () => {
                 <Card key={leader.ID || index} className="group overflow-hidden border-0 shadow-card hover:shadow-divine transition-all duration-300 animate-fade-in">
                   <div className="relative aspect-square overflow-hidden">
                     <img
-                      src={leader.Image ? `https://api.tucasastu.com/${leader.Image}` : '/placeholder-image.jpg'}
+                      src={leader.Image ? `http://192.168.1.164:8080/${leader.Image.replace(/\\/g, "/")}` : '/placeholder-image.jpg'}
                       alt={leader.Name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />

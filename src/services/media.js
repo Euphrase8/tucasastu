@@ -1,14 +1,15 @@
-import axios from 'axios';
-import { getToken } from './login';
+// src/services/media.js
+import axios from "axios";
+import { getToken } from "./login";
 
-const API_BASE = 'https://api.tucasastu.com';
+const API_BASE = import.meta.env.VITE_BASE_URL;
 
+// Create new media
 export const createMedia = async (formData) => {
   const token = getToken();
   if (!token) throw new Error("No token found. Please login.");
-
   try {
-    const response = await axios.post(`${baseURL}/api/media/create`, formData, {
+    const response = await axios.post(`${API_BASE}/api/media/create`, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "multipart/form-data",
@@ -21,11 +22,10 @@ export const createMedia = async (formData) => {
   }
 };
 
-// ------------------- Get All Media -------------------
+// Get all media
 export const getAllMedia = async () => {
-
   try {
-    const response = await axios.get(`${baseURL}/api/media`);
+    const response = await axios.get(`${API_BASE}/api/media`);
     return response.data;
   } catch (error) {
     console.error("Fetch media error:", error.response?.data || error.message);
@@ -33,12 +33,12 @@ export const getAllMedia = async () => {
   }
 };
 
-// ------------------- Get Media by ID -------------------
+// Get media by ID
 export const getMediaById = async (ID) => {
   const token = getToken();
   if (!token) throw new Error("No token found. Please login.");
   try {
-    const response = await axios.get(`${baseURL}/api/media/${ID}`);
+    const response = await axios.get(`${API_BASE}/api/media/${ID}`);
     return response.data;
   } catch (error) {
     console.error("Fetch media by ID error:", error.response?.data || error.message);
@@ -46,13 +46,12 @@ export const getMediaById = async (ID) => {
   }
 };
 
-// ------------------- Update Media -------------------
+// Update media
 export const updateMedia = async (ID, formData) => {
   const token = getToken();
   if (!token) throw new Error("No token found. Please login.");
-
   try {
-    const response = await axios.put(`${baseURL}/api/media/${ID}`, formData, {
+    const response = await axios.put(`${API_BASE}/api/media/${ID}`, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "multipart/form-data",
@@ -65,16 +64,13 @@ export const updateMedia = async (ID, formData) => {
   }
 };
 
-// ------------------- Delete Media -------------------
+// Delete media
 export const deleteMedia = async (ID) => {
   const token = getToken();
   if (!token) throw new Error("No token found. Please login.");
-
   try {
-    const response = await axios.delete(`${baseURL}/api/media/${ID}/delete`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const response = await axios.delete(`${API_BASE}/api/media/${ID}/delete`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;
   } catch (error) {
@@ -83,17 +79,13 @@ export const deleteMedia = async (ID) => {
   }
 };
 
-// ------------------- Count Media -------------------
+// Count media
 export const countMedia = async () => {
   try {
-    const response = await axios.get(`${baseURL}/api/media/count`);
-    return response.data; // Expected: { total_media: 123 }
+    const response = await axios.get(`${API_BASE}/api/media/count`);
+    return response.data; // { total_media: number }
   } catch (error) {
     console.error("Fetch media count error:", error.response?.data || error.message);
-    if (error.response && error.response.data) {
-      throw new Error(error.response.data.error || "Failed to fetch media count");
-    } else {
-      throw new Error("An unexpected error occurred while fetching media count");
-    }
+    throw new Error("Failed to fetch media count");
   }
 };

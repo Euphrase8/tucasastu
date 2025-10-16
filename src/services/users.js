@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getToken } from './login';
 
-const API_BASE = 'https://api.tucasastu.com';
+const API_BASE = import.meta.env.VITE_BASE_URL;
 
 /**
  * Get all users
@@ -10,7 +10,7 @@ export const getAllUsers = async () => {
   const token = getToken();
   if (!token) throw new Error('No token found. Please login.');
 
-  const response = await axios.get(`${API_BASE}/api/users`, {
+  const response = await axios.get(`${API_BASE}/users`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

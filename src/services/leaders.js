@@ -1,109 +1,91 @@
-import axios from 'axios';
-import { getToken } from './login';
+import axios from "axios";
+import { getToken } from "./login";
 
-const API_BASE_URL = 'https://api.tucasastu.com/api/chaplaincy-leaders';
+const API_BASE = import.meta.env.VITE_BASE_URL;
 
-// Add a new leader
-export const addLeader = async (formData, token) => {
-  if (!token) throw new Error('No token found. Please login.');
+// Helper for unified error handling
+const handleAxiosError = (error, message) => {
+  if (error.response?.data) {
+    throw new Error(error.response.data.error || error.response.data.message || message);
+  }
+  throw new Error(message);
+};
+
+// ✅ Create a new leader (with image upload)
+export const addLeader = async (formData) => {
+  const token = getToken();
+  if (!token) throw new Error("No token found. Please login.");
+
   try {
-    const response = await axios.post(`${API_BASE_URL}/create`, formData, {
+    const response = await axios.post(`${API_BASE}/api/chaplaincy-leaders/create`, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'multipart/form-data',
+        // Let axios automatically set multipart boundary
       },
     });
-
     return response.data;
   } catch (error) {
-    if (error.response && error.response.data) {
-      throw new Error(error.response.data.error || 'Failed to add leader');
-    } else {
-      throw new Error('An unexpected error occurred');
-    }
+    handleAxiosError(error, "Failed to add leader");
   }
 };
 
-// Fetch all leaders
+// ✅ Fetch all leaders
 export const getLeaders = async () => {
-  const token = getToken();
-  if (!token) throw new Error('No token found. Please login.');
-  try {
-    const response = await axios.get(`${API_BASE_URL}`, {
-      headers: {
-        Authorization: `Bearer ${token}`, // Added token to the request
-      },
-    });
-    return response.data;
-  } catch (error) {
-    if (error.response && error.response.data) {
-      throw new Error(error.response.data.error || 'Failed to fetch leaders');
-    } else {
-      throw new Error('An unexpected error occurred');
-    }
-  }
-};
-
-// Update a leader
-export const updateLeader = async (ID, formData) => {
   const token = getToken();
   if (!token) throw new Error("No token found. Please login.");
   try {
-    const response = await axios.put(`${API_BASE_URL}/${ID}/update`, formData, {
+    const response = await axios.get(`${API_BASE}/api/chaplaincy-leaders`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    handleAxiosError(error, "Failed to fetch leaders");
+  }
+};
+
+// ✅ Update leader
+export const updateLeader = async (ID, formData) => {
+  const token = getToken();
+  if (!token) throw new Error("No token found. Please login.");
+
+  try {
+    const response = await axios.put(`${API_BASE}/api/chaplaincy-leaders/${ID}/update`, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
       },
     });
     return response.data;
   } catch (error) {
-    if (error.response && error.response.data) {
-      throw new Error(error.response.data.error || 'Failed to update leader');
-    } else {
-      throw new Error('An unexpected error occurred');
-    }
+    handleAxiosError(error, "Failed to update leader");
   }
 };
 
-// Delete a leader
+// ✅ Delete leader
 export const deleteLeader = async (ID) => {
   const token = getToken();
-  if (!token) throw new Error('No token found. Please login.');
+  if (!token) throw new Error("No token found. Please login.");
+
   try {
-    const response = await axios.delete(`${API_BASE_URL}/${ID}/delete`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const response = await axios.delete(`${API_BASE}/api/chaplaincy-leaders/${ID}/delete`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;
   } catch (error) {
-    if (error.response && error.response.data) {
-      throw new Error(error.response.data.error || 'Failed to delete leader');
-    } else {
-      throw new Error('An unexpected error occurred');
-    }
+    handleAxiosError(error, "Failed to delete leader");
   }
 };
 
-// Fetch chaplaincy leader counts
+// ✅ Count leaders
 export const countLeader = async () => {
   const token = getToken();
-  if (!token) throw new Error('No token found. Please login.');
+  if (!token) throw new Error("No token found. Please login.");
+
   try {
-    const response = await axios.get(`${API_BASE_URL}/count`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const response = await axios.get(`${API_BASE}/api/chaplaincy-leaders/count`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
-    if (response.status !== 200) {
-      throw new Error('Failed to fetch leader count');
-    }
-    return response.data; // Expected: { total_chaplains, total_conference_leaders, total_union_leaders, total_zone_leaders }
+    return response.data;
   } catch (error) {
-    if (error.response && error.response.data) {
-      throw new Error(error.response.data.error || 'Failed to fetch leader count');
-    } else {
-      throw new Error('An unexpected error occurred while fetching leader count');
-    }
+    handleAxiosError(error, "Failed to fetch leader count");
   }
 };

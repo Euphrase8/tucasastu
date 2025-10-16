@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getToken } from './index'; // Update this path if needed
 
-const API_BASE = 'https://api.tucasastu.com/api';
+const API_BASE = import.meta.env.VITE_BASE_URL;
 
 /**
  * Fetch settings from the API
@@ -13,7 +13,7 @@ export const fetchSettings = async () => {
     const token = getToken();
     if (!token) throw new Error('No token found. Please login.');
 
-    const response = await axios.get(`${API_BASE}/settings`, {
+    const response = await axios.get(`${API_BASE}/api/settings`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -24,7 +24,7 @@ export const fetchSettings = async () => {
     return {
       missionText: missionText || 'Living the Mission, Reaching the Nations',
       subtitleText: subtitleText || 'TUCASA STU – The Adventist Mission to Campuses',
-      heroBackgroundImage: heroBackgroundImage ? `https://api.tucasastu.com/${heroBackgroundImage}` : '',
+      heroBackgroundImage: heroBackgroundImage ? `http://192.168.1.164:8080/${heroBackgroundImage}` : '',
     };
   } catch (error) {
     throw new Error(`Failed to fetch settings: ${error.message}`);
@@ -51,7 +51,7 @@ export const updateSettings = async (settings) => {
       formData.append('heroBackgroundImage', settings.heroBackgroundImage);
     }
 
-    const response = await axios.put(`${API_BASE}/settings/update`, formData, {
+    const response = await axios.put(`${API_BASE}/api/settings/update`, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'multipart/form-data',
@@ -67,7 +67,7 @@ export const updateSettings = async (settings) => {
         missionText: updatedSettings.missionText,
         subtitleText: updatedSettings.subtitleText,
         heroBackgroundImage: updatedSettings.heroBackgroundImage
-          ? `https://api.tucasastu.com/${updatedSettings.heroBackgroundImage}`
+          ? `http://192.168.1.164:8080/${updatedSettings.heroBackgroundImage}`
           : '',
       },
     };

@@ -2,7 +2,7 @@ import axios from "axios";
 import { getToken } from '../service/index';
 
 // Ensure no trailing slash to avoid double slashes in URLs
-const API_BASE_URL = "https://api.tucasastu.com";
+const API_BASE = import.meta.env.VITE_BASE_URL;
 
 // Create an Axios instance with default config
 const apiClient = axios.create({

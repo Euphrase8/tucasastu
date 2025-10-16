@@ -22,62 +22,43 @@ const AdminLogin = () => {
 
     try {
       const result = await login({ email, password });
-
       if (result.token) {
-        // Save token & user info
         localStorage.setItem("token", result.token);
         localStorage.setItem("user", JSON.stringify(result.user));
-
-        console.log("Stored token:", localStorage.getItem("token"));
-
-        // Delay ensures token is set before redirect
-        setTimeout(() => {
-          navigate("/admin/dashboard", { replace: true });
-        }, 100);
+        setTimeout(() => navigate("/admin/dashboard", { replace: true }), 100);
       } else {
-        setError("Login Failed. Please check your credentials.");
+        setError("Invalid credentials. Please try again.");
       }
     } catch (err: any) {
-      console.error("Login error:", err);
-      setError(err.response?.data?.error || "Login failed. Please check your credentials.");
+      console.error(err);
+      setError(err.response?.data?.error || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-accent/10 to-primary/20 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-xl bg-card/95 backdrop-blur-sm border-border/50">
-        <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-accent/20 to-primary/30 p-4">
+      
+      {/* Login Card */}
+      <Card className="w-full max-w-md shadow-2xl bg-card/95 backdrop-blur-md border border-gray-200 rounded-2xl">
+        <CardHeader className="text-center space-y-4 py-6">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-tr from-[#3e8391] to-[#2f557f] rounded-full flex items-center justify-center">
             <Shield className="h-8 w-8 text-white" />
           </div>
-          {loading && (
-            <div className="fixed inset-0 flex justify-center items-center bg-gray-900/70 z-50">
-              <div className="flex flex-col items-center justify-center">
-                <div className="w-16 h-16 border-[6px] border-t-[#3e8391] border-gray-200 rounded-full animate-spin"></div>
-                <p className="mt-6 text-lg text-white font-inter">Logging in...</p>
-              </div>
-            </div>
-          )}
-          {error && (
-            <div className="fixed top-8 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-xl shadow-lg z-50 animate-scale-in bg-red-600 text-white font-inter flex items-center max-w-[90%]">
-              <X className="w-5 h-5 mr-2" />
-              {error}
-            </div>
-          )}
-          <div>
-            <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              TUCASA STU Admin
-            </CardTitle>
-            <p className="text-muted-foreground mt-2">
-              Access the content management system
-            </p>
-          </div>
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-[#3e8391] to-[#2f557f] bg-clip-text text-transparent">
+            TUCASA STU Admin
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Access the content management system
+          </p>
         </CardHeader>
+
         <CardContent className="space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            
+            {/* Email */}
+            <div className="space-y-1">
               <Label htmlFor="email">Email Address</Label>
               <Input
                 id="email"
@@ -88,7 +69,9 @@ const AdminLogin = () => {
                 required
               />
             </div>
-            <div className="space-y-2">
+
+            {/* Password */}
+            <div className="space-y-1">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Input
@@ -104,19 +87,42 @@ const AdminLogin = () => {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </Button>
               </div>
             </div>
-            <Button type="submit" className="w-full bg-gradient-primary hover:opacity-90">
-              Sign In
+
+            {/* Submit */}
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-[#3e8391] to-[#2f557f] hover:opacity-90 transition"
+            >
+              {loading ? "Signing In..." : "Sign In"}
             </Button>
           </form>
         </CardContent>
       </Card>
+
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="flex flex-col items-center">
+            <div className="w-16 h-16 border-4 border-t-[#3e8391] border-gray-300 rounded-full animate-spin"></div>
+            <span className="mt-4 text-white font-medium">Logging in...</span>
+          </div>
+        </div>
+      )}
+
+      {/* Error Toast */}
+      {error && (
+        <div className="fixed top-6 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-xl shadow-lg z-50 bg-red-600 text-white flex items-center space-x-2 animate-scale-in">
+          <X className="w-5 h-5" />
+          <span>{error}</span>
+        </div>
+      )}
     </div>
   );
 };

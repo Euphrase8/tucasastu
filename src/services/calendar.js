@@ -1,118 +1,104 @@
-import axios from 'axios';
-import { getToken } from './login';
+import axios from "axios";
+import { getToken } from "./login";
 
-const API_BASE = 'https://api.tucasastu.com/api';
+const API_BASE = import.meta.env.VITE_BASE_URL;
 
 // GET /api/annual-calendars
-export const getAnnualCalendars = async (token) => {
+export const getAnnualCalendars = async () => {
+  const token = getToken();
+  if (!token) throw new Error("No token found. Please login.");
   try {
-    const res = await axios.get(`${API_BASE}/annual-calendars`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const res = await axios.get(`${API_BASE}/api/annual-calendars`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
     const data = Array.isArray(res.data) ? res.data : [];
-    return data.map(item => ({
+    return data.map((item) => ({
       ...item,
-      date: item.date && !isNaN(new Date(item.date).getTime()) ? item.date : null,
+      date: item.date || item.Date || item.EventDate || null,
     }));
   } catch (error) {
-    console.error('getAnnualCalendars Error:', error.response || error);
-    throw new Error(error.response?.data?.error || 'Failed to fetch annual calendars');
+    console.error("getAnnualCalendars Error:", error.response || error);
+    throw new Error(error.response?.data?.error || "Failed to fetch annual calendars");
   }
 };
 
 // POST /api/annual-calendars/create
-export const createAnnualCalendar = async (formData, token) => {
-  if (!token) throw new Error('No token found. Please login.');
-  if (!formData || !formData.date || !formData.event || !formData.participants) {
-    throw new Error('Missing required fields: date, event, and participants are required.');
-  }
-  const date = new Date(formData.date);
-  if (isNaN(date.getTime())) {
-    throw new Error('Invalid date format. Please provide a valid ISO date string.');
-  }
+export const createAnnualCalendar = async (formData) => {
+  const token = getToken();
+  if (!token) throw new Error("No token found. Please login.");
+
+  const body = {
+    title: formData.event,
+    EventDate: formData.date,
+    location: formData.location || "",
+    description: formData.description || "",
+    participants: formData.participants,
+  };
+
   try {
-    const res = await axios.post(`${API_BASE}/annual-calendars/create`, formData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+    const res = await axios.post(`${API_BASE}/api/annual-calendars/create`, body, {
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     });
     return res.data;
   } catch (error) {
-    console.error('createAnnualCalendar Error:', error.response || error);
-    throw new Error(error.response?.data?.error || 'Failed to create annual calendar');
+    console.error("createAnnualCalendar Error:", error.response || error);
+    throw new Error(error.response?.data?.error || "Failed to create annual calendar");
   }
 };
 
 // PUT /api/annual-calendars/:id/update
-export const updateAnnualCalendar = async (id, formData, token) => {
-  if (!token) throw new Error('No token found. Please login.');
-  if (!id || isNaN(parseInt(id))) throw new Error('Invalid ID provided.');
-  if (!formData || !formData.date || !formData.event || !formData.participants) {
-    throw new Error('Missing required fields: date, event, and participants are required.');
-  }
-  const date = new Date(formData.date);
-  if (isNaN(date.getTime())) {
-    throw new Error('Invalid date format. Please provide a valid ISO date string.');
-  }
+export const updateAnnualCalendar = async (id, formData) => {
+  const token = getToken();
+  if (!token) throw new Error("No token found. Please login.");
+  if (!id) throw new Error("Invalid ID provided.");
+
+  const body = {
+    title: formData.event,
+    EventDate: formData.date,
+    location: formData.location || "",
+    description: formData.description || "",
+    participants: formData.participants,
+  };
+
   try {
-    const res = await axios.put(`${API_BASE}/annual-calendars/${id}/update`, formData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+    const res = await axios.put(`${API_BASE}/api/annual-calendars/${id}/update`, body, {
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     });
     return res.data;
   } catch (error) {
-    console.error('updateAnnualCalendar Error:', error.response || error);
-    throw new Error(error.response?.data?.error || 'Failed to update annual calendar');
+    console.error("updateAnnualCalendar Error:", error.response || error);
+    throw new Error(error.response?.data?.error || "Failed to update annual calendar");
   }
 };
 
 // DELETE /api/annual-calendars/:id/delete
-export const deleteAnnualCalendar = async (id, token) => {
-  if (!token) throw new Error('No token found. Please login.');
-  if (!id || isNaN(parseInt(id))) {
-    console.error('Invalid ID in deleteAnnualCalendar:', id);
-    throw new Error('Invalid ID provided.');
-  }
+export const deleteAnnualCalendar = async (id) => {
+  const token = getToken();
+  if (!token) throw new Error("No token found. Please login.");
+  if (!id) throw new Error("Invalid ID provided.");
+
   try {
-    console.log(`Deleting event with ID: ${id}`);
-    const res = await axios.delete(`${API_BASE}/annual-calendars/${id}/delete`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const res = await axios.delete(`${API_BASE}/api/annual-calendars/${id}/delete`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
     return res.data;
   } catch (error) {
-    console.error('deleteAnnualCalendar Error:', error.response || error);
-    throw new Error(error.response?.data?.error || 'Failed to delete annual calendar');
+    console.error("deleteAnnualCalendar Error:", error.response || error);
+    throw new Error(error.response?.data?.error || "Failed to delete annual calendar");
   }
 };
 
+// GET /api/annual-calendars/count
 export const countEvent = async () => {
-  const token  = getToken();
-  if (!token) throw new Error('No token found. Please login.');
+  const token = getToken();
+  if (!token) throw new Error("No token found. Please login.");
   try {
-    const res = await axios.get(`${API_BASE}/annual-calendars/count`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const res = await axios.get(`${API_BASE}/api/annual-calendars/count`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
-
-    if (res.status !== 200) {
-      throw new Error('Failed to fetch event count');
-    }
-    return res.data;  
+    return res.data;
+  } catch (error) {
+    console.error("countEvent Error:", error.response || error);
+    throw new Error(error.response?.data?.error || "Failed to fetch event count");
   }
-    catch (error) {
-      if(error.res && error.res.data) {
-        throw new Error(error.res.data.error || 'Failed to fetch event count');
-      }
-      else {
-        throw new Error('An unexpected error occurred');
-      }     
-    }
-  };
+};

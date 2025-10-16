@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Megaphone, Calendar, Clock, ArrowRight, Bell } from "lucide-react";
-import { fetchAnnouncements as getAnnouncements } from "@/services/posts";
+import { fetchAnnouncements as getAnnouncements } from "@/services/announcements";
 
 const Announcements = () => {
   const [announcements, setAnnouncements] = useState<any[]>([]);
@@ -49,7 +49,6 @@ const Announcements = () => {
             <p className="mt-4 text-muted-foreground">Loading announcements...</p>
           </div>
         ) : announcements.length > 0 ? (
-          // Cards container
           <div
             className={
               announcements.length === 1
@@ -59,7 +58,7 @@ const Announcements = () => {
           >
             {announcements.map((a, i) => (
               <Card
-                key={a._id}
+                key={a.ID}
                 className="group overflow-hidden shadow-card hover:shadow-divine transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm animate-fade-in w-full max-w-sm"
                 style={{ animationDelay: `${i * 150}ms` }}
               >
