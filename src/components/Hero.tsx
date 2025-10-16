@@ -1,11 +1,11 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Users, Calendar, Send } from 'lucide-react';
+import { ArrowRight, Users, Calendar, Send, Link } from 'lucide-react';
 import heroImage from '@/assets/hero-student.jpg';
 
 const Hero = () => {
   return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+    <section className="relative min-h-[100vh] flex items-center overflow-hidden">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <img
@@ -95,7 +95,7 @@ const Hero = () => {
 
               {/* Summit Link (replaces Find Branch) */}
               <a
-                href="#summit"
+                href="https://summit.tucasastu.com/"
                 className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-accent/50 transition-smooth group"
               >
                 <div className="flex items-center space-x-3">
@@ -112,7 +112,7 @@ const Hero = () => {
 
               {/* TIMS Registration */}
               <a
-                href="#tims"
+                href="https://tims.tucasastu.com/register/"
                 className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-accent/50 transition-smooth group"
               >
                 <div className="flex items-center space-x-3">
@@ -128,12 +128,15 @@ const Hero = () => {
 
             <div className="mt-6 pt-6 border-t">
               <Button className="w-full bg-gradient-to-r from-primary to-accent">
-                Contact Leadership
+                <a href="/leaders">
+                  Contact Leadership
+
+                </a>
               </Button>
             </div>
           </div>
         </div>
-      </div>  
+      </div>
 
       {/* Scroll Indicator */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">

@@ -140,13 +140,13 @@ const Contact = () => {
                     <Instagram className="w-5 h-5" />
                   </a>
                   <a 
-                    href="#facebook" 
+                    href="https://www.facebook.com/profile.php?id=100007626844444" 
                     className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-smooth"
                   >
                     <Facebook className="w-5 h-5" />
                   </a>
                   <a 
-                    href="#youtube" 
+                    href="https://www.youtube.com/channel/UCXlIX--xWi5EkMOHEAondw?view_as=subscriber" 
                     className="flex items-center justify-center w-10 h-10 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-smooth"
                   >
                     <Youtube className="w-5 h-5" />
@@ -257,14 +257,15 @@ const Contact = () => {
         </div>
 
         {/* Quick Links */}
-        <div className="mt-16 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* <div className="mt-16 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Button variant="outline" className="h-auto p-4 flex-col space-y-2">
             <Users className="w-6 h-6 text-primary" />
             <span>Join TUCASA</span>
           </Button>
           <Button variant="outline" className="h-auto p-4 flex-col space-y-2">
             <Calendar className="w-6 h-6 text-primary" />
-            <span>Event Registration</span>
+            <span>View Summit
+            </span>
           </Button>
           <Button variant="outline" className="h-auto p-4 flex-col space-y-2">
             <BookOpen className="w-6 h-6 text-primary" />
@@ -274,7 +275,7 @@ const Contact = () => {
             <Globe className="w-6 h-6 text-primary" />
             <span>Online Store</span>
           </Button>
-        </div>
+        </div> */}
       </div>
     </section>
   );

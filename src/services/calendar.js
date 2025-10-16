@@ -6,7 +6,7 @@ const API_BASE = import.meta.env.VITE_BASE_URL;
 // GET /api/annual-calendars
 export const getAnnualCalendars = async () => {
   const token = getToken();
-  if (!token) throw new Error("No token found. Please login.");
+  // if (token) throw new Error("No token found. Please login.");
   try {
     const res = await axios.get(`${API_BASE}/api/annual-calendars`, {
       headers: { Authorization: `Bearer ${token}` },
