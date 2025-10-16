@@ -36,7 +36,7 @@ const BookOfYear = () => {
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary/10 via-accent/5 to-primary/20 py-20 text-center">
         <div className="container mx-auto px-4">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-primary rounded-full mb-6 shadow-lg">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary text-white rounded-full mb-6">
             <BookOpen className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-4xl md:text-5xl font-extrabold text-foreground mb-4">
