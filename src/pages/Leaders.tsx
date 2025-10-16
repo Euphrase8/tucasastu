@@ -1,166 +1,177 @@
-import React, { useState, useEffect, useRef } from 'react';
-import Navigation from '@/components/Navigation';
-import Footer from '@/components/Footer';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Users, Mail, Phone, MapPin, Search, Filter } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import React, { useState, useEffect } from "react";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Users, Phone, Search, Filter } from "lucide-react";
 
 const Leaders = () => {
   const [leaders, setLeaders] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
-  const leadersRef = useRef<HTMLDivElement | null>(null);
-  const [shouldFetchLeaders, setShouldFetchLeaders] = useState(false);
+  const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterTitle, setFilterTitle] = useState("all");
 
-  // Fetch leaders API
+const API_BASE = "https://api.tucasastu.com";
+
+  // Fetch leaders (no token required)
+  const fetchLeaders = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const response = await fetch(`${API_BASE}/api/chaplaincy-leaders`);
+      if (!response.ok) throw new Error("Failed to fetch leaders");
+      const data = await response.json();
+      setLeaders(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+      setError("Unable to load leaders. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (!shouldFetchLeaders) return;
-
-    const fetchLeaders = async () => {
-      try {
-        setLoading(true);
-        setError('');
-        const response = await fetch('http://192.168.1.164:8080/api/chaplaincy-leaders');
-        if (!response.ok) throw new Error('Failed to fetch leaders');
-        const result = await response.json();
-        setLeaders(result || []);
-      } catch (err) {
-        console.error(err);
-        setError('Failed to load leaders. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchLeaders();
-  }, [shouldFetchLeaders]);
-
-  // Intersection observer to lazy-load leaders when section is in view
-  useEffect(() => {
-    const observerOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
-    const observerCallback = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) setShouldFetchLeaders(true);
-      });
-    };
-
-    const observer = new IntersectionObserver(observerCallback, observerOptions);
-    if (leadersRef.current) observer.observe(leadersRef.current);
-
-    return () => {
-      if (leadersRef.current) observer.unobserve(leadersRef.current);
-    };
   }, []);
 
-  // Filter leaders by level
-  const filteredLeaders = activeFilter === 'all' 
-    ? leaders 
-    : leaders.filter((leader) => leader.Title?.toLowerCase() === activeFilter);
+  // Filtering & searching
+  const filteredLeaders = leaders.filter((leader) => {
+    const matchesSearch =
+      leader.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      leader.Title?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter =
+      filterTitle === "all" || leader.Title?.toLowerCase() === filterTitle;
+    return matchesSearch && matchesFilter;
+  });
 
-  const filterCategories = [
-    { id: 'all', label: 'All Leaders', count: leaders.length },
-    { id: 'chaplain', label: 'Chaplains', count: leaders.filter(l => l.Title?.toLowerCase() === 'chaplain').length },
-    { id: 'zonal chairperson', label: 'Zonal Chairpersons', count: leaders.filter(l => l.Title?.toLowerCase() === 'zonal chairperson').length },
-    { id: 'union chairperson', label: 'Union Chairpersons', count: leaders.filter(l => l.Title?.toLowerCase() === 'union chairperson').length },
-    { id: 'zonal secretary', label: 'Zonal Secretaries', count: leaders.filter(l => l.Title?.toLowerCase() === 'zonal secretary').length },
-  ];
+  // Extract title categories dynamically
+  const uniqueTitles = Array.from(
+    new Set(leaders.map((l) => l.Title).filter(Boolean))
+  );
 
   return (
     <>
       <Navigation />
-      <div className="min-h-screen bg-divine-light py-20">
-        <div className="container">
+      <div className="min-h-screen bg-gradient-to-b from-divine-light via-white to-divine-light py-20">
+        <div className="container mx-auto px-4">
+
           {/* Header */}
           <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4">
+            <Badge variant="outline" className="mb-3">
               <Users className="w-4 h-4 mr-2" />
               Leadership Directory
             </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              Meet Our <span className="text-gradient-divine">Leaders</span>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Our <span className="text-gradient-divine">Leaders</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              Dedicated servants committed to advancing TUCASA STU's mission across Tanzania.
+              Meet the visionaries guiding TUCASA STU’s mission with passion and faith.
             </p>
           </div>
 
-          {/* Search & Filter Section */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 mb-12 shadow-card">
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search leaders..." className="pl-10" />
+          {/* Search and Filters */}
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 mb-12 shadow-md">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="relative w-full md:w-1/2">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search by name or title..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
-              <div className="flex items-center space-x-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Filter by title:</span>
-              </div>
-            </div>
 
-            {/* Filter Categories */}
-            <div className="flex flex-wrap gap-2">
-              {filterCategories.map((category) => (
+              <div className="flex items-center gap-2 flex-wrap justify-center">
+                <Filter className="h-4 w-4 text-gray-500" />
                 <Button
-                  key={category.id}
-                  variant={activeFilter === category.id ? "default" : "outline"}
+                  variant={filterTitle === "all" ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setActiveFilter(category.id)}
-                  className="transition-smooth"
+                  onClick={() => setFilterTitle("all")}
                 >
-                  {category.label}
-                  <Badge variant="secondary" className="ml-2 text-xs">{category.count}</Badge>
+                  All
                 </Button>
-              ))}
+                {uniqueTitles.map((title) => (
+                  <Button
+                    key={title}
+                    variant={
+                      filterTitle === title.toLowerCase() ? "default" : "outline"
+                    }
+                    size="sm"
+                    onClick={() => setFilterTitle(title.toLowerCase())}
+                  >
+                    {title}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Leaders Grid */}
-          <div ref={leadersRef} className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {loading ? (
-              [...Array(6)].map((_, index) => (
-                <div key={index} className="bg-gray-200/80 rounded-2xl p-6 h-72 skeleton"></div>
-              ))
-            ) : error ? (
-              <p className="text-red-600 col-span-full text-center">{error}</p>
-            ) : filteredLeaders.length === 0 ? (
-              <p className="text-muted-foreground col-span-full text-center">No leaders found.</p>
-            ) : (
-              filteredLeaders.map((leader, index) => (
-                <Card key={leader.ID || index} className="group overflow-hidden border-0 shadow-card hover:shadow-divine transition-all duration-300 animate-fade-in">
-                  <div className="relative aspect-square overflow-hidden">
+          {loading ? (
+            <div className="grid md:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="h-72 bg-gray-200/60 rounded-2xl animate-pulse"
+                ></div>
+              ))}
+            </div>
+          ) : error ? (
+            <p className="text-center text-red-600">{error}</p>
+          ) : filteredLeaders.length === 0 ? (
+            <p className="text-center text-gray-500">No leaders found.</p>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {filteredLeaders.map((leader, idx) => (
+                <Card
+                  key={leader.ID || idx}
+                  className="overflow-hidden border-0 rounded-2xl shadow-lg hover:shadow-divine transition-all duration-300 bg-white/90 backdrop-blur-sm"
+                >
+                  <div className="relative w-full h-64 overflow-hidden">
                     <img
-                      src={leader.Image ? `http://192.168.1.164:8080/${leader.Image.replace(/\\/g, "/")}` : '/placeholder-image.jpg'}
+                      src={
+                        leader.Image
+                          ? `${API_BASE}/${leader.Image.replace(/\\/g, "/")}`
+                          : "/placeholder-image.jpg"
+                      }
                       alt={leader.Name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) =>
+                        (e.currentTarget.src = "/placeholder-image.jpg")
+                      }
+                      className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute top-3 left-3">
                       <Badge
                         variant="secondary"
-                        className="bg-white/90 text-gold"
+                        className="bg-white/90 text-blue-700 font-semibold"
                       >
-                        {leader.Title}
+                        {leader.Title || "Leader"}
                       </Badge>
                     </div>
                   </div>
+
                   <CardContent className="p-6">
-                    <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors">{leader.Name}</h3>
-                    <p className="text-sm text-primary font-medium mb-2">{leader.Title}</p>
-                    <div className="space-y-2 mb-4">
-                      {leader.Contact && (
-                        <div className="flex items-center text-xs text-muted-foreground">
-                          <Phone className="h-3 w-3 mr-1" />
-                          {leader.Contact}
-                        </div>
-                      )}
-                    </div>
+                    <h3 className="text-lg font-bold mb-1 text-gray-800">
+                      {leader.Name}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">
+                      {leader.Title}
+                    </p>
+                    {leader.Contact && (
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Phone className="h-4 w-4 mr-2 text-blue-600" />
+                        {leader.Contact}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       <Footer />

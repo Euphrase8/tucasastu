@@ -13,33 +13,27 @@ interface Leader {
 }
 
 const Leadership: React.FC = () => {
-  const [leaders, setLeaders] = useState<Leader[]>([]);
   const [chaplains, setChaplains] = useState<Leader[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchLeaders();
+    const fetchChaplains = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('https://api.tucasastu.com/api/chaplaincy-leaders');
+        if (!response.ok) throw new Error('Failed to fetch chaplains');
+        const data: Leader[] = await response.json();
+        // Filter only chaplains
+        setChaplains(data.filter((leader) => leader.Title?.toLowerCase() === 'chaplain'));
+      } catch (error) {
+        console.error('Error fetching chaplains:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchChaplains();
   }, []);
-
-  const fetchLeaders = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('https://api.tucasastu.com/api/chaplaincy-leaders');
-      if (!response.ok) throw new Error('Failed to fetch leaders');
-      const data: Leader[] = await response.json();
-      setLeaders(data);
-
-      // Filter chaplains
-      const filteredChaplains = data.filter(
-        (leader) => leader.Title?.toLowerCase() === 'chaplain'
-      );
-      setChaplains(filteredChaplains);
-    } catch (error) {
-      console.error('Error fetching leaders:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <section id="leadership" className="py-20 bg-background">
@@ -63,20 +57,14 @@ const Leadership: React.FC = () => {
         {loading ? (
           <p className="text-center text-muted-foreground">Loading chaplains...</p>
         ) : chaplains.length > 0 ? (
-          <div
-            className={`grid gap-6 mb-12 ${
-              chaplains.length === 1
-                ? 'justify-items-center'
-                : 'sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-            }`}
-          >
+          <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {chaplains.map((chaplain, index) => (
               <Card
                 key={chaplain.ID}
                 className="group overflow-hidden shadow-card hover:shadow-divine transition-all duration-300 border-0 animate-fade-in max-w-xs w-full"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="relative w-full h-64 sm:h-60 md:h-64 overflow-hidden rounded-xl">
+                <div className="relative w-full h-64 overflow-hidden rounded-xl">
                   {chaplain.Image ? (
                     <img
                       src={`https://api.tucasastu.com/${chaplain.Image}`}
@@ -129,25 +117,23 @@ const Leadership: React.FC = () => {
         )}
 
         {/* View All Leaders Button */}
-        {leaders.length > 0 && (
-          <div className="text-center">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-card">
-              <h3 className="text-2xl font-bold mb-4">Complete Leadership Directory</h3>
-              <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                Discover our full leadership team including national executives, zonal presidents, 
-                federation leaders, and branch coordinators serving across Tanzania.
-              </p>
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
-                onClick={() => window.location.href = '/leaders'}
-              >
-                View All Leaders
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </div>
+        <div className="text-center mt-12">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-card inline-block">
+            <h3 className="text-2xl font-bold mb-4">Complete Leadership Directory</h3>
+            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+              Discover our full leadership team including national executives, zonal presidents, 
+              federation leaders, and branch coordinators serving across Tanzania.
+            </p>
+            <Button
+              size="lg"
+              className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+              onClick={() => window.location.href = '/leaders'}
+            >
+              View All Leaders
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
           </div>
-        )}
+        </div>
       </div>
     </section>
   );
