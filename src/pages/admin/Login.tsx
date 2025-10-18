@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff, Shield, X } from "lucide-react";
 import { login } from "@/services/login.js";
+import logo from "@/assets/logo1.png"; // Import the logo
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -39,13 +40,14 @@ const AdminLogin = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-accent/20 to-primary/30 p-4">
-      
       {/* Login Card */}
       <Card className="w-full max-w-md shadow-2xl bg-card/95 backdrop-blur-md border border-gray-200 rounded-2xl">
         <CardHeader className="text-center space-y-4 py-6">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-tr from-[#3e8391] to-[#2f557f] rounded-full flex items-center justify-center">
-            <Shield className="h-8 w-8 text-white" />
+          {/* Logo */}
+          <div className="mx-auto w-20 h-20 rounded-full overflow-hidden shadow-md">
+            <img src={logo} alt="TUCASA Logo" className="w-full h-full object-contain" />
           </div>
+
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-[#3e8391] to-[#2f557f] bg-clip-text text-transparent">
             TUCASA STU Admin
           </CardTitle>
@@ -56,7 +58,6 @@ const AdminLogin = () => {
 
         <CardContent className="space-y-6">
           <form onSubmit={handleSubmit} className="space-y-5">
-            
             {/* Email */}
             <div className="space-y-1">
               <Label htmlFor="email">Email Address</Label>

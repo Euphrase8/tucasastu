@@ -1,24 +1,91 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TUCASA STU - Living the Mission, Reaching the Nation</title>
-    <meta name="description" content="Tanzania Universities & Colleges Adventist Students' Association - Southern Tanzania Union. Empowering Adventist students across Tanzania through faith, education, and service." />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="TUCASA STU is the official association of Seventh-Day Adventist students across Universities and Colleges in Tanzania. Living the Mission, Reaching the Nation."
+    />
+    <meta
+      name="keywords"
+      content="TUCASA, STU, Seventh-Day Adventist, Students Association, Tanzania, SDA Students, Campus Ministry, Christian education, youth ministry"
+    />
     <meta name="author" content="TUCASA STU" />
-    <meta name="keywords" content="TUCASA, STU, Adventist students, Tanzania, universities, colleges, Southern Tanzania Union, Christian education, student association" />
 
-    <meta property="og:title" content="TUCASA STU - Living the Mission, Reaching the Nation" />
-    <meta property="og:description" content="Join thousands of Adventist students across Tanzania. Unite in faith, education, and service with TUCASA STU." />
+    <!-- Open Graph -->
+    <meta
+      property="og:title"
+      content="TUCASA STU | Living the Mission, Reaching the Nation."
+    />
+    <meta
+      property="og:description"
+      content="Official website of TUCASA STU, Southern Tanzania Union Mission. Seventh-Day Adventist Students reaching campuses for Christ."
+    />
+    <meta property="og:url" content="https://tucasastu.com/" />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://tucasastu.com/favicon.ico" />
 
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta
+      name="twitter:title"
+      content="TUCASA STU | Living the Mission, Reaching the Nation."
+    />
+    <meta
+      name="twitter:description"
+      content="Join thousands of Adventist students across Tanzania. Unite in faith, education, and service with TUCASA STU."
+    />
+    <meta
+      name="twitter:image"
+      content="https://tucasastu.com/favicon.ico"
+    />
+
+    <link rel="icon" href="./favicon.ico" type="image/x-icon" />
+
+    <!-- Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-JDRYLQ1Y13"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-JDRYLQ1Y13");
+    </script>
+
+    <title>TUCASA STU | Living the Mission, Reaching the Nation.</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            animation: {
+              fadeInUp: "fadeInUp 0.6s ease-out forwards",
+            },
+            keyframes: {
+              fadeInUp: {
+                "0%": { opacity: "0", transform: "translateY(20px)" },
+                "100%": { opacity: "1", transform: "translateY(0)" },
+              },
+            },
+          },
+        },
+      };
+    </script>
   </head>
 
   <body>
+    
     <div id="root"></div>
+
+    <!-- React/Vite entry file -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

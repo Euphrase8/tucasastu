@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Index from "./pages/Index";
 import Gallery from "./pages/Gallery";
-import Summit from "./pages/Summit";
+// import Summit from "./pages/Summit";
 import Leaders from "./pages/Leaders";
 import Calendar from "./pages/Calendar";
 import BookOfYear from "./pages/BookOfYear";
@@ -38,7 +38,7 @@ const App = () => (
           {/* Public Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/gallery" element={<Gallery />} />
-          <Route path="/summit" element={<Summit />} />
+          {/* <Route path="/summit" element={<Summit />} /> */}
           <Route path="/leaders" element={<Leaders />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/book-of-year" element={<BookOfYear />} />
