@@ -1,17 +1,18 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Calendar, 
-  Image, 
-  Bell, 
+import {
+  LayoutDashboard,
+  Users,
+  Calendar,
+  Image,
+  Bell,
   BookOpen,
   Eye,
   Menu,
   X,
-  LogOut
+  LogOut,
+  BarChart3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -43,6 +44,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
+    { icon: BarChart3, label: 'Analytics', path: '/admin/analytics' },
     { icon: Users, label: 'Leaders', path: '/admin/leaders' },
     { icon: Bell, label: 'Announcements', path: '/admin/announcements' },
     { icon: Image, label: 'Gallery', path: '/admin/gallery' },

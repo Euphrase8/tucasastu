@@ -2,18 +2,68 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Users, 
-  Calendar as CalendarIcon, 
-  Image, 
-  BookOpen, 
-  Bell, 
+import {
+  Users,
+  Calendar as CalendarIcon,
+  Image,
+  BookOpen,
+  Bell,
   Award,
-  TrendingUp
+  TrendingUp,
+  BarChart3,
+  Eye,
+  Activity,
+  Globe
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { getAnalyticsSummary, getRealTimeData, isAnalyticsConfigured } from "@/services/analytics";
 
 const AdminDashboard = () => {
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [realTimeData, setRealTimeData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const isConfigured = isAnalyticsConfigured();
+
+  useEffect(() => {
+    const fetchAnalyticsData = async () => {
+      if (!isConfigured) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const endDate = new Date();
+        const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+        const [summaryResult, realTimeResult] = await Promise.all([
+          getAnalyticsSummary(startDate, endDate),
+          getRealTimeData()
+        ]);
+
+        if (summaryResult.success) {
+          setAnalyticsData(summaryResult.data);
+        }
+        if (realTimeResult.success) {
+          setRealTimeData(realTimeResult);
+        }
+      } catch (error) {
+        console.error('Failed to fetch analytics data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalyticsData();
+  }, [isConfigured]);
+
+  const formatNumber = (num) => {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num?.toString() || '0';
+  };
+
   const stats = [
     { title: "Total Members", value: "2,847", icon: Users, change: "+12%" },
     { title: "Active Events", value: "23", icon: CalendarIcon, change: "+5%" },
@@ -22,6 +72,7 @@ const AdminDashboard = () => {
   ];
 
   const quickActions = [
+    { title: "Analytics Dashboard", href: "/admin/analytics", icon: BarChart3 },
     { title: "Manage Leaders", href: "/admin/leaders", icon: Award },
     { title: "Events & Calendar", href: "/admin/events", icon: CalendarIcon },
     { title: "Gallery", href: "/admin/gallery", icon: Image },
@@ -74,6 +125,99 @@ const AdminDashboard = () => {
             );
           })}
         </div>
+
+        {/* Analytics Summary Cards */}
+        {isConfigured && analyticsData && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+              <CardHeader className="flex items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-blue-700">Page Views (30d)</CardTitle>
+                <Eye className="h-5 w-5 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-900">
+                  {formatNumber(analyticsData.pageViews)}
+                </div>
+                <Badge className="bg-blue-100 text-blue-700 border-blue-200 mt-2">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  Website traffic
+                </Badge>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+              <CardHeader className="flex items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-green-700">Active Users (30d)</CardTitle>
+                <Users className="h-5 w-5 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-900">
+                  {formatNumber(analyticsData.users)}
+                </div>
+                <Badge className="bg-green-100 text-green-700 border-green-200 mt-2">
+                  <Activity className="h-3 w-3 mr-1" />
+                  Unique visitors
+                </Badge>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+              <CardHeader className="flex items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-purple-700">Sessions (30d)</CardTitle>
+                <Globe className="h-5 w-5 text-purple-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-900">
+                  {formatNumber(analyticsData.sessions)}
+                </div>
+                <Badge className="bg-purple-100 text-purple-700 border-purple-200 mt-2">
+                  <Globe className="h-3 w-3 mr-1" />
+                  Total sessions
+                </Badge>
+              </CardContent>
+            </Card>
+
+            {realTimeData && (
+              <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+                <CardHeader className="flex items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-orange-700">Live Users</CardTitle>
+                  <Activity className="h-5 w-5 text-orange-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-orange-900">
+                    {realTimeData.totalActiveUsers || 0}
+                  </div>
+                  <Badge className="bg-orange-100 text-orange-700 border-orange-200 mt-2">
+                    <Activity className="h-3 w-3 mr-1" />
+                    Right now
+                  </Badge>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* Analytics Not Configured Message */}
+        {!isConfigured && (
+          <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-yellow-700">
+                <BarChart3 className="h-5 w-5" />
+                Google Analytics Integration
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-yellow-700 mb-4">
+                Configure Google Analytics to see detailed website insights and visitor statistics.
+              </p>
+              <Link to="/admin/analytics">
+                <Button variant="outline" className="border-yellow-300 text-yellow-700 hover:bg-yellow-100">
+                  Setup Analytics
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Quick Actions + Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

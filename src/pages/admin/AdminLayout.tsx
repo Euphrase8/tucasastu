@@ -11,12 +11,14 @@ import {
   BookOpen,
   Menu,
   X,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SessionExpiredModal } from "@/components/SessionExpiredModal";
 
 const menuItems = [
   { name: "Dashboard", path: "/admin/dashboard", icon: Home },
+  { name: "Analytics", path: "/admin/analytics", icon: BarChart3 },
   { name: "Leaders", path: "/admin/leaders", icon: Users },
   { name: "Events", path: "/admin/events", icon: Calendar },
   { name: "Gallery", path: "/admin/gallery", icon: Image },

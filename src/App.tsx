@@ -16,6 +16,7 @@ import Announcements from "./pages/Announcements";
 
 import AdminLogin from "./pages/admin/Login";
 import AdminDashboard from "./pages/admin/Dashboard";
+import Analytics from "./pages/admin/Analytics";
 import ManageLeaders from "./pages/admin/ManageLeaders";
 import ManageGallery from "./pages/admin/ManageGallery";
 import ManageAnnouncements from "./pages/admin/ManageAnnouncements";
@@ -52,6 +53,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/analytics"
+            element={
+              <ProtectedRoute>
+                <Analytics />
               </ProtectedRoute>
             }
           />
