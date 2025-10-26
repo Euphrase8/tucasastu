@@ -14,7 +14,15 @@ const Leaders = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTitle, setFilterTitle] = useState("all");
 
-const API_BASE = "https://api.tucasastu.com";
+  const API_BASE = "https://api.tucasastu.com";
+
+  // Predefined title order
+  const titleOptions = [
+    "Chaplain","Chairperson", "Deputy Chairperson", "Secretary", "Deputy Secretary", "Treasurer", "Deputy Treasurer",
+    "Communication Cordinator", "Deputy Communication Cordinator", "Internal Auditor", 
+    "Spiritual & Evengalisim", "Deputy Spiritual & Evengalisim", "Education Cordinator", "Medical Missionary", "Religious Liberty",
+    "Project Manager", "Adventist Possibility Ministry", "Music Cordinator", "Youth Training Cordinator",
+  ];
 
   // Fetch leaders (no token required)
   const fetchLeaders = async () => {
@@ -37,20 +45,21 @@ const API_BASE = "https://api.tucasastu.com";
     fetchLeaders();
   }, []);
 
-  // Filtering & searching
-  const filteredLeaders = leaders.filter((leader) => {
-    const matchesSearch =
-      leader.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      leader.Title?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter =
-      filterTitle === "all" || leader.Title?.toLowerCase() === filterTitle;
-    return matchesSearch && matchesFilter;
-  });
-
-  // Extract title categories dynamically
-  const uniqueTitles = Array.from(
-    new Set(leaders.map((l) => l.Title).filter(Boolean))
-  );
+  // Filter, search, and sort by predefined title order
+  const filteredAndSortedLeaders = leaders
+    .filter((leader) => {
+      const matchesSearch =
+        leader.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        leader.Title?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesFilter =
+        filterTitle === "all" || leader.Title?.toLowerCase() === filterTitle;
+      return matchesSearch && matchesFilter;
+    })
+    .sort((a, b) => {
+      const indexA = titleOptions.indexOf(a.Title) !== -1 ? titleOptions.indexOf(a.Title) : 999;
+      const indexB = titleOptions.indexOf(b.Title) !== -1 ? titleOptions.indexOf(b.Title) : 999;
+      return indexA - indexB;
+    });
 
   return (
     <>
@@ -72,7 +81,7 @@ const API_BASE = "https://api.tucasastu.com";
             </p>
           </div>
 
-          {/* Search and Filters */}
+          {/* Search & Filters */}
           <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 mb-12 shadow-md">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="relative w-full md:w-1/2">
@@ -94,12 +103,10 @@ const API_BASE = "https://api.tucasastu.com";
                 >
                   All
                 </Button>
-                {uniqueTitles.map((title) => (
+                {titleOptions.map((title) => (
                   <Button
                     key={title}
-                    variant={
-                      filterTitle === title.toLowerCase() ? "default" : "outline"
-                    }
+                    variant={filterTitle === title.toLowerCase() ? "default" : "outline"}
                     size="sm"
                     onClick={() => setFilterTitle(title.toLowerCase())}
                   >
@@ -122,11 +129,11 @@ const API_BASE = "https://api.tucasastu.com";
             </div>
           ) : error ? (
             <p className="text-center text-red-600">{error}</p>
-          ) : filteredLeaders.length === 0 ? (
+          ) : filteredAndSortedLeaders.length === 0 ? (
             <p className="text-center text-gray-500">No leaders found.</p>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {filteredLeaders.map((leader, idx) => (
+              {filteredAndSortedLeaders.map((leader, idx) => (
                 <Card
                   key={leader.ID || idx}
                   className="overflow-hidden border-0 rounded-2xl shadow-lg hover:shadow-divine transition-all duration-300 bg-white/90 backdrop-blur-sm"

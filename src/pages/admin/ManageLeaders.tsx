@@ -27,9 +27,10 @@ const ManageLeaders = ({ leaderType = "" }: { leaderType?: string }) => {
   const API_BASE = import.meta.env.VITE_BASE_URL;
 
   const titleOptions = [
-    "Chaplain", "Union Chairperson", "Zonal Chairperson", "Deputy Union Chairperson",
-    "Deputy Zonal Chairperson", "Treasurer", "Secretary", "Assistant Chaplain",
-    "Youth Chaplain", "Women Chaplain",
+    "Chaplain","Chairperson", "Deputy Chairperson", "Secretary", "Deputy Secretary", "Treasurer", "Deputy Treasurer",
+    "Communication Cordinator", "Deputy Communication Cordinator", "Internal Auditor", 
+    "Spiritual & Evengalisim", "Deputy Spiritual & Evengalisim", "Education Cordinator", "Medical Missionary", "Religious Liberty",
+    "Project Manager", "Adventist Possibility Ministry", "Music Cordinator", "Youth Training Cordinator",
   ];
 
   const [formData, setFormData] = useState({ Name: "", Title: titleOptions[0], contact: "" });
@@ -116,13 +117,16 @@ const ManageLeaders = ({ leaderType = "" }: { leaderType?: string }) => {
     } finally { setLoading(false); }
   };
 
-  const filtered = leaders.filter((leader) => {
-    const matchesSearch =
-      (leader.Name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
-      (leader.Title?.toLowerCase() || "").includes(searchTerm.toLowerCase());
-    const matchesFilter = filterTitle === "all" || leader.Title === filterTitle;
-    return matchesSearch && matchesFilter;
-  });
+  // Filter and sort leaders
+  const filteredAndSorted = leaders
+    .filter((leader) => {
+      const matchesSearch =
+        (leader.Name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+        (leader.Title?.toLowerCase() || "").includes(searchTerm.toLowerCase());
+      const matchesFilter = filterTitle === "all" || leader.Title === filterTitle;
+      return matchesSearch && matchesFilter;
+    })
+    .sort((a, b) => titleOptions.indexOf(a.Title) - titleOptions.indexOf(b.Title)); // Sort by custom order
 
   return (
     <AdminLayout>
@@ -202,7 +206,7 @@ const ManageLeaders = ({ leaderType = "" }: { leaderType?: string }) => {
 
         {/* Leaders Grid */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((leader) => (
+          {filteredAndSorted.map((leader) => (
             <Card key={leader.ID} className="hover:shadow-lg transition-shadow duration-200 rounded-lg overflow-hidden">
               <CardHeader className="flex justify-between items-start">
                 <div className="flex items-center gap-3">

@@ -40,3 +40,11 @@
 .read-the-docs {
   color: #888;
 }
+/* Add to your global CSS or Tailwind config */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
+}

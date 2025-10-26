@@ -116,7 +116,7 @@ const Navigation = () => {
             </a>
           </Button>
           <Button className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90">
-            <a href="https://summit.tucasastu.com/" target="_blank">
+            <a href="https://sms.tucasastu.com/" target="_blank">
               Summit
             </a>
           </Button>

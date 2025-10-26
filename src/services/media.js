@@ -89,3 +89,27 @@ export const countMedia = async () => {
     throw new Error("Failed to fetch media count");
   }
 };
+export const countEvent = async () => {
+  const token  = getToken();
+  if (!token) throw new Error('No token found. Please login.');
+  try {
+    const res = await axios.get(`${API_BASE}/api/annual-calendars/count`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (res.status !== 200) {
+      throw new Error('Failed to fetch event count');
+    }
+    return res.data;  
+  }
+    catch (error) {
+      if(error.res && error.res.data) {
+        throw new Error(error.res.data.error || 'Failed to fetch event count');
+      }
+      else {
+        throw new Error('An unexpected error occurred');
+      }     
+    }
+  };

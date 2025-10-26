@@ -1,11 +1,9 @@
-// src/components/admin/GalleryForm.tsx
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 interface GalleryFormProps {
-  formData: { title: string; category: string; date: string };
+  formData: { event_title: string; Description: string };
   setFormData: (data: any) => void;
   imageFiles: FileList | null;
   setImageFiles: (files: FileList | null) => void;
@@ -30,47 +28,31 @@ export const GalleryForm = ({
     }}
     className="space-y-4"
   >
+    {/* Event Title */}
     <div className="space-y-2">
-      <Label>Title</Label>
+      <Label>Event Title</Label>
       <Input
-        value={formData.title}
-        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+        value={formData.event_title}
+        onChange={(e) => setFormData({ ...formData, event_title: e.target.value })}
         required
       />
     </div>
 
+    {/* Description */}
     <div className="space-y-2">
-      <Label>Category</Label>
-      <Select
-        value={formData.category}
-        onValueChange={(value) => setFormData({ ...formData, category: value })}
-      >
-        <SelectTrigger>
-          <SelectValue placeholder="Select category" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="events">Events</SelectItem>
-          <SelectItem value="spiritual">Spiritual</SelectItem>
-          <SelectItem value="service">Service</SelectItem>
-          <SelectItem value="training">Training</SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
-
-    <div className="space-y-2">
-      <Label>Date</Label>
+      <Label>Description (optional)</Label>
       <Input
-        type="date"
-        value={formData.date}
-        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+        value={formData.Description}
+        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
       />
     </div>
 
+    {/* Media Files */}
     <div className="space-y-2">
-      <Label>Images {isEdit ? "(optional)" : "*"}</Label>
+      <Label>Media Files {isEdit ? "(optional)" : "*"}</Label>
       <Input
         type="file"
-        accept="image/*"
+        accept="image/*,video/*,application/pdf"
         multiple
         onChange={(e) => setImageFiles(e.target.files)}
       />
@@ -79,6 +61,7 @@ export const GalleryForm = ({
       )}
     </div>
 
+    {/* Submit Button */}
     <Button type="submit" className="w-full" disabled={loading}>
       {loading ? (isEdit ? "Updating..." : "Adding...") : isEdit ? "Update" : "Add"}
     </Button>

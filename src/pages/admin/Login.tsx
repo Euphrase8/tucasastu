@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff, Shield, X } from "lucide-react";
+import { Eye, EyeOff, X, Home } from "lucide-react";
 import { login } from "@/services/login.js";
-import logo from "@/assets/logo1.png"; // Import the logo
+import logo from "@/assets/logo1.png";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -20,7 +20,6 @@ const AdminLogin = () => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       const result = await login({ email, password });
       if (result.token) {
@@ -31,7 +30,6 @@ const AdminLogin = () => {
         setError("Invalid credentials. Please try again.");
       }
     } catch (err: any) {
-      console.error(err);
       setError(err.response?.data?.error || "Login failed. Please try again.");
     } finally {
       setLoading(false);
@@ -39,15 +37,28 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-accent/20 to-primary/30 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-800 relative overflow-hidden p-4">
+
+      {/* Polygon Background Patterns */}
+      <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="hexPattern" width="80" height="80" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
+            <polygon points="40,0 80,20 80,60 40,80 0,60 0,20" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+          </pattern>
+          <pattern id="trianglePattern" width="60" height="52" patternUnits="userSpaceOnUse">
+            <polygon points="30,0 60,52 0,52" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#hexPattern)" />
+        <rect width="100%" height="100%" fill="url(#trianglePattern)" />
+      </svg>
+
       {/* Login Card */}
-      <Card className="w-full max-w-md shadow-2xl bg-card/95 backdrop-blur-md border border-gray-200 rounded-2xl">
+      <Card className="relative z-10 w-full max-w-md bg-white/95 backdrop-blur-md shadow-2xl rounded-3xl border border-gray-200">
         <CardHeader className="text-center space-y-4 py-6">
-          {/* Logo */}
           <div className="mx-auto w-20 h-20 rounded-full overflow-hidden shadow-md">
             <img src={logo} alt="TUCASA Logo" className="w-full h-full object-contain" />
           </div>
-
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-[#3e8391] to-[#2f557f] bg-clip-text text-transparent">
             TUCASA STU Admin
           </CardTitle>
@@ -57,8 +68,7 @@ const AdminLogin = () => {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-1">
               <Label htmlFor="email">Email Address</Label>
               <Input
@@ -68,10 +78,10 @@ const AdminLogin = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="border-gray-200 focus:ring-[#3e8391]"
               />
             </div>
 
-            {/* Password */}
             <div className="space-y-1">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
@@ -82,7 +92,7 @@ const AdminLogin = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="pr-10"
+                  className="border-gray-200 focus:ring-[#3e8391] pr-10"
                 />
                 <Button
                   type="button"
@@ -96,13 +106,24 @@ const AdminLogin = () => {
               </div>
             </div>
 
-            {/* Submit */}
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-[#3e8391] to-[#2f557f] hover:opacity-90 transition"
-            >
-              {loading ? "Signing In..." : "Sign In"}
-            </Button>
+            <div className="space-y-4">
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-[#3e8391] to-[#2f557f] hover:from-[#2e6a7a] hover:to-[#1f3a5c] text-white transition-colors"
+                disabled={loading}
+              >
+                {loading ? "Signing In..." : "Sign In"}
+              </Button>
+              <Link to="/">
+                <Button
+                  variant="outline"
+                  className="w-full mt-4 border-gray-200 text-muted-foreground hover:bg-gray-50 hover:text-[#3e8391] transition-colors"
+                >
+                  <Home className="w-4 h-4 mr-2" />
+                  Back to Home
+                </Button>
+              </Link>
+            </div>
           </form>
         </CardContent>
       </Card>

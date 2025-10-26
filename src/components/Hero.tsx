@@ -1,7 +1,7 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, Users, Calendar, Send, Link } from 'lucide-react';
-import heroImage from '@/assets/hero-student.jpg';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Users, Calendar, Send, Link } from "lucide-react";
+import heroImage from "@/assets/hero-student.jpg";
 
 const Hero = () => {
   return (
@@ -26,41 +26,57 @@ const Hero = () => {
           </div>
 
           <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-4">
-            Living the Mission,{' '}
+            Living the Mission,{" "}
             <span className="text-gradient-divine">Reaching the Nation</span>
           </h1>
 
           <p className="text-lg md:text-xl text-white/90 mb-6 max-w-2xl">
-            Join thousands of Adventist students across Tanzania as we unite in faith,
-            education, and service. Together, we're building a community that transforms
-            lives and spreads hope throughout our nation.
+            Join thousands of Adventist students across Tanzania as we unite in
+            faith, education, and service. Together, we're building a community
+            that transforms lives and spreads hope throughout our nation.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mb-8">
             <Button
+              asChild
               size="lg"
-              className="bg-gold hover:bg-gold/90 text-gold-foreground shadow-divine"
+              className="bg-gradient-to-r from-primary to-accent text-white shadow-divine"
             >
-              Join TUCASA Now
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <a
+                href="https://tims.tucasastu.com/register/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center"
+              >
+                Join TUCASA Now
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </a>
             </Button>
+
             <Button
+              asChild
               size="lg"
               variant="outline"
-              className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+              className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm transition-colors"
             >
-              Learn More
+              <a href="#about" className="flex items-center justify-center">
+                Learn More
+              </a>
             </Button>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-6 sm:gap-8">
             <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-gold">50+</div>
+              <div className="text-2xl md:text-3xl font-bold text-gold">
+                50+
+              </div>
               <div className="text-sm text-white/80">Universities</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-gold">5,000+</div>
+              <div className="text-2xl md:text-3xl font-bold text-gold">
+                5,000+
+              </div>
               <div className="text-sm text-white/80">Active Members</div>
             </div>
             <div className="text-center">
@@ -73,7 +89,9 @@ const Hero = () => {
         {/* Quick Actions */}
         <div className="hidden lg:block">
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-divine">
-            <h3 className="text-2xl font-bold text-primary mb-6">Quick Access</h3>
+            <h3 className="text-2xl font-bold text-primary mb-6">
+              Quick Access
+            </h3>
 
             <div className="space-y-4">
               {/* Upcoming Events */}
@@ -95,7 +113,7 @@ const Hero = () => {
 
               {/* Summit Link (replaces Find Branch) */}
               <a
-                href="https://summit.tucasastu.com/"
+                href="https://sms.tucasastu.com/"
                 className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-accent/50 transition-smooth group"
               >
                 <div className="flex items-center space-x-3">
@@ -119,7 +137,9 @@ const Hero = () => {
                   <Users className="h-5 w-5 text-accent" />
                   <div>
                     <div className="font-medium">TIMS Registration</div>
-                    <div className="text-sm text-muted-foreground">Member portal</div>
+                    <div className="text-sm text-muted-foreground">
+                      Member portal
+                    </div>
                   </div>
                 </div>
                 <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-accent transition-smooth" />
@@ -128,10 +148,7 @@ const Hero = () => {
 
             <div className="mt-6 pt-6 border-t">
               <Button className="w-full bg-gradient-to-r from-primary to-accent">
-                <a href="/leaders">
-                  Contact Leadership
-
-                </a>
+                <a href="/leaders">Contact Leadership</a>
               </Button>
             </div>
           </div>

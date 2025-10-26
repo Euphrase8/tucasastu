@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,62 +15,103 @@ import {
   BarChart3,
   Eye,
   Activity,
-  Globe
+  Globe,
 } from "lucide-react";
-import { Link } from "react-router-dom";
-import React, { useState, useEffect } from "react";
-import { getAnalyticsSummary, getRealTimeData, isAnalyticsConfigured } from "@/services/analytics";
 
-const AdminDashboard = () => {
-  const [analyticsData, setAnalyticsData] = useState(null);
-  const [realTimeData, setRealTimeData] = useState(null);
+import { getAnalyticsSummary, getRealTimeData, isAnalyticsConfigured } from "@/services/analytics";
+import { countMedia, countEvent } from "@/services/media.js"; 
+import { getLeaders } from "@/services/leaders.js";
+
+interface LeaderCounts {
+  total_chaplains: number;
+  total_conference_leaders: number;
+  total_union_leaders: number;
+  total_zone_leaders: number;
+}
+
+const AdminDashboard: React.FC = () => {
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [realTimeData, setRealTimeData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [leaderCounts, setLeaderCounts] = useState<LeaderCounts>({
+    total_chaplains: 0,
+    total_conference_leaders: 0,
+    total_union_leaders: 0,
+    total_zone_leaders: 0,
+  });
+  const [eventCount, setEventCount] = useState(0);
+  const [mediaCount, setMediaCount] = useState(0);
+  const [announcementCount, setAnnouncementCount] = useState(0);
 
   const isConfigured = isAnalyticsConfigured();
 
   useEffect(() => {
-    const fetchAnalyticsData = async () => {
-      if (!isConfigured) {
-        setLoading(false);
-        return;
-      }
-
+    const fetchData = async () => {
       try {
         const endDate = new Date();
         const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-        const [summaryResult, realTimeResult] = await Promise.all([
-          getAnalyticsSummary(startDate, endDate),
-          getRealTimeData()
-        ]);
+        if (isConfigured) {
+          const [summaryResult, realTimeResult] = await Promise.all([
+            getAnalyticsSummary(startDate, endDate),
+            getRealTimeData(),
+          ]);
 
-        if (summaryResult.success) {
-          setAnalyticsData(summaryResult.data);
+          if (summaryResult.success) setAnalyticsData(summaryResult.data);
+          if (realTimeResult.success) setRealTimeData(realTimeResult);
         }
-        if (realTimeResult.success) {
-          setRealTimeData(realTimeResult);
-        }
+
+        const leaders = await getLeaders();
+        const counts: LeaderCounts = {
+          total_chaplains: 0,
+          total_conference_leaders: 0,
+          total_union_leaders: 0,
+          total_zone_leaders: 0,
+        };
+
+        leaders.forEach((leader: any) => {
+          const title = leader.Title?.toLowerCase() || "";
+          if (title.includes("union")) counts.total_union_leaders += 1;
+          else if (title.includes("conference") && !title.includes("union")) counts.total_conference_leaders += 1;
+          else if (title.includes("zone") && !title.includes("union")) counts.total_zone_leaders += 1;
+          else counts.total_chaplains += 1;
+        });
+        setLeaderCounts(counts);
+
+        const eventData = await countEvent();
+        setEventCount(eventData.total_events || 0);
+
+        const mediaData = await countMedia();
+        setMediaCount(mediaData.total_media || 0);
+
+        setAnnouncementCount(45); // Placeholder for announcements
       } catch (error) {
-        console.error('Failed to fetch analytics data:', error);
+        console.error("Failed to fetch data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAnalyticsData();
+    fetchData();
   }, [isConfigured]);
 
-  const formatNumber = (num) => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-    return num?.toString() || '0';
+  const formatNumber = (num: number | undefined) => {
+    if (!num) return "0";
+    if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + "M";
+    if (num >= 1_000) return (num / 1_000).toFixed(1) + "K";
+    return num.toString();
   };
 
   const stats = [
-    { title: "Total Members", value: "2,847", icon: Users, change: "+12%" },
-    { title: "Active Events", value: "23", icon: CalendarIcon, change: "+5%" },
-    { title: "Gallery Images", value: "1,234", icon: Image, change: "+18%" },
-    { title: "Announcements", value: "45", icon: Bell, change: "+8%" }
+    {
+      title: "Total Leaders",
+      value: formatNumber(Object.values(leaderCounts).reduce((sum, count) => sum + (count || 0), 0)),
+      icon: Users,
+      change: "+12%",
+    },
+    { title: "Active Events", value: formatNumber(eventCount), icon: CalendarIcon, change: "+5%" },
+    { title: "Gallery Images", value: formatNumber(mediaCount), icon: Image, change: "+18%" },
+    { title: "Announcements", value: formatNumber(announcementCount), icon: Bell, change: "+8%" },
   ];
 
   const quickActions = [
@@ -77,14 +120,14 @@ const AdminDashboard = () => {
     { title: "Events & Calendar", href: "/admin/events", icon: CalendarIcon },
     { title: "Gallery", href: "/admin/gallery", icon: Image },
     { title: "Announcements", href: "/admin/announcements", icon: Bell },
-    { title: "Book of Year", href: "/admin/book", icon: BookOpen }
+    { title: "Book of Year", href: "/admin/book", icon: BookOpen },
   ];
 
   const recentActivity = [
     { action: "New member registered", time: "2 minutes ago" },
     { action: "Event 'Prayer Week' updated", time: "1 hour ago" },
     { action: "Gallery updated with 12 new photos", time: "3 hours ago" },
-    { action: "Announcement published", time: "5 hours ago" }
+    { action: "Announcement published", time: "5 hours ago" },
   ];
 
   return (
@@ -103,10 +146,7 @@ const AdminDashboard = () => {
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
-              <Card 
-                key={stat.title} 
-                className="bg-gradient-to-br from-card to-card/80 shadow-lg hover:shadow-2xl transition-shadow duration-300"
-              >
+              <Card key={stat.title} className="bg-gradient-to-br from-card to-card/80 shadow-lg hover:shadow-2xl transition-shadow duration-300">
                 <CardHeader className="flex items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
                   <Icon className="h-5 w-5 text-muted-foreground" />
@@ -126,7 +166,7 @@ const AdminDashboard = () => {
           })}
         </div>
 
-        {/* Analytics Summary Cards */}
+        {/* Analytics Cards */}
         {isConfigured && analyticsData && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
@@ -135,9 +175,7 @@ const AdminDashboard = () => {
                 <Eye className="h-5 w-5 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-blue-900">
-                  {formatNumber(analyticsData.pageViews)}
-                </div>
+                <div className="text-2xl font-bold text-blue-900">{formatNumber(analyticsData.pageViews)}</div>
                 <Badge className="bg-blue-100 text-blue-700 border-blue-200 mt-2">
                   <TrendingUp className="h-3 w-3 mr-1" />
                   Website traffic
@@ -151,9 +189,7 @@ const AdminDashboard = () => {
                 <Users className="h-5 w-5 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-900">
-                  {formatNumber(analyticsData.users)}
-                </div>
+                <div className="text-2xl font-bold text-green-900">{formatNumber(analyticsData.users)}</div>
                 <Badge className="bg-green-100 text-green-700 border-green-200 mt-2">
                   <Activity className="h-3 w-3 mr-1" />
                   Unique visitors
@@ -167,9 +203,7 @@ const AdminDashboard = () => {
                 <Globe className="h-5 w-5 text-purple-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-purple-900">
-                  {formatNumber(analyticsData.sessions)}
-                </div>
+                <div className="text-2xl font-bold text-purple-900">{formatNumber(analyticsData.sessions)}</div>
                 <Badge className="bg-purple-100 text-purple-700 border-purple-200 mt-2">
                   <Globe className="h-3 w-3 mr-1" />
                   Total sessions
@@ -184,9 +218,7 @@ const AdminDashboard = () => {
                   <Activity className="h-5 w-5 text-orange-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-orange-900">
-                    {realTimeData.totalActiveUsers || 0}
-                  </div>
+                  <div className="text-2xl font-bold text-orange-900">{realTimeData.totalActiveUsers || 0}</div>
                   <Badge className="bg-orange-100 text-orange-700 border-orange-200 mt-2">
                     <Activity className="h-3 w-3 mr-1" />
                     Right now
@@ -197,31 +229,8 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* Analytics Not Configured Message */}
-        {!isConfigured && (
-          <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-yellow-700">
-                <BarChart3 className="h-5 w-5" />
-                Google Analytics Integration
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-yellow-700 mb-4">
-                Configure Google Analytics to see detailed website insights and visitor statistics.
-              </p>
-              <Link to="/admin/analytics">
-                <Button variant="outline" className="border-yellow-300 text-yellow-700 hover:bg-yellow-100">
-                  Setup Analytics
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Quick Actions + Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Quick Actions */}
           <Card className="lg:col-span-1 shadow-lg">
             <CardHeader>
               <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
@@ -231,12 +240,9 @@ const AdminDashboard = () => {
                 const Icon = action.icon;
                 return (
                   <Link key={action.title} to={action.href}>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start p-4 hover:bg-accent hover:border-primary transition-colors duration-200"
-                    >
+                    <Button variant="outline" className="w-full justify-start p-4 hover:bg-accent hover:border-primary transition-colors duration-200">
                       <Icon className="h-5 w-5 mr-3 text-primary" />
-                      <span>{action.title}</span>
+                      {action.title}
                     </Button>
                   </Link>
                 );
@@ -244,7 +250,6 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Recent Activity */}
           <Card className="lg:col-span-2 shadow-lg">
             <CardHeader>
               <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
@@ -261,60 +266,6 @@ const AdminDashboard = () => {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Management Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="hover:shadow-xl transition-shadow cursor-pointer">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Award className="mr-2 h-5 w-5 text-primary" />
-                Leadership Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Add, edit, and organize leadership structure and member roles.
-              </p>
-              <Link to="/admin/leaders">
-                <Button variant="outline" className="w-full">Manage Leaders</Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-xl transition-shadow cursor-pointer">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <BookOpen className="mr-2 h-5 w-5 text-primary" />
-                Book of the Year
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Update the featured book, description, and downloadable PDF.
-              </p>
-              <Link to="/admin/book">
-                <Button variant="outline" className="w-full">Manage Book</Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-xl transition-shadow cursor-pointer">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <CalendarIcon className="mr-2 h-5 w-5 text-primary" />
-                Events & Calendar
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Create and manage events, schedules, and calendar entries.
-              </p>
-              <Link to="/admin/events">
-                <Button variant="outline" className="w-full">Manage Events</Button> 
-              </Link>
             </CardContent>
           </Card>
         </div>
