@@ -1,115 +1,56 @@
 // src/services/media.js
-import axios from "axios";
-import { getToken } from "./login";
+import API from "@/lib/api";
+import { getToken } from "@/services/login";
 
 const API_BASE = import.meta.env.VITE_BASE_URL;
 
-// Create new media
-export const createMedia = async (formData) => {
+// Helper: add auth header only if token exists
+const authHeaders = () => {
   const token = getToken();
-  if (!token) throw new Error("No token found. Please login.");
-  try {
-    const response = await axios.post(`${API_BASE}/api/media/create`, formData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Upload error:", error.response?.data || error.message);
-    throw error;
-  }
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+// Create media
+export const createMedia = async (formData) => {
+  return (await API.post(`${API_BASE}/api/media/create`, formData, {
+    headers: {
+      ...authHeaders(),
+      "Content-Type": "multipart/form-data",
+    },
+  })).data;
 };
 
 // Get all media
 export const getAllMedia = async () => {
-  try {
-    const response = await axios.get(`${API_BASE}/api/media`);
-    return response.data;
-  } catch (error) {
-    console.error("Fetch media error:", error.response?.data || error.message);
-    throw error;
-  }
+  return (await API.get(`${API_BASE}/api/media`)).data;
 };
 
 // Get media by ID
-export const getMediaById = async (ID) => {
-  const token = getToken();
-  if (!token) throw new Error("No token found. Please login.");
-  try {
-    const response = await axios.get(`${API_BASE}/api/media/${ID}`);
-    return response.data;
-  } catch (error) {
-    console.error("Fetch media by ID error:", error.response?.data || error.message);
-    throw error;
-  }
+export const getMediaById = async (id) => {
+  return (await API.get(`${API_BASE}/api/media/${id}`, { headers: authHeaders() })).data;
 };
 
 // Update media
-export const updateMedia = async (ID, formData) => {
-  const token = getToken();
-  if (!token) throw new Error("No token found. Please login.");
-  try {
-    const response = await axios.put(`${API_BASE}/api/media/${ID}`, formData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Update media error:", error.response?.data || error.message);
-    throw error;
-  }
+export const updateMedia = async (id, formData) => {
+  return (await API.put(`${API_BASE}/api/media/${id}`, formData, {
+    headers: {
+      ...authHeaders(),
+      "Content-Type": "multipart/form-data",
+    },
+  })).data;
 };
 
-// Delete media
-export const deleteMedia = async (ID) => {
-  const token = getToken();
-  if (!token) throw new Error("No token found. Please login.");
-  try {
-    const response = await axios.delete(`${API_BASE}/api/media/${ID}/delete`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Delete media error:", error.response?.data || error.message);
-    throw error;
-  }
+// Delete media – FIXED: removed `/delete`
+export const deleteMedia = async (id) => {
+  return (await API.delete(`${API_BASE}/api/media/${id}`, { headers: authHeaders() })).data;
 };
 
 // Count media
 export const countMedia = async () => {
-  try {
-    const response = await axios.get(`${API_BASE}/api/media/count`);
-    return response.data; // { total_media: number }
-  } catch (error) {
-    console.error("Fetch media count error:", error.response?.data || error.message);
-    throw new Error("Failed to fetch media count");
-  }
+  return (await API.get(`${API_BASE}/api/media/count`)).data;
 };
-export const countEvent = async () => {
-  const token  = getToken();
-  if (!token) throw new Error('No token found. Please login.');
-  try {
-    const res = await axios.get(`${API_BASE}/api/annual-calendars/count`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
 
-    if (res.status !== 200) {
-      throw new Error('Failed to fetch event count');
-    }
-    return res.data;  
-  }
-    catch (error) {
-      if(error.res && error.res.data) {
-        throw new Error(error.res.data.error || 'Failed to fetch event count');
-      }
-      else {
-        throw new Error('An unexpected error occurred');
-      }     
-    }
-  };
+// Count events
+export const countEvent = async () => {
+  return (await API.get(`${API_BASE}/api/annual-calendars/count`, { headers: authHeaders() })).data;
+};

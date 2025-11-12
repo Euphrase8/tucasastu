@@ -12,9 +12,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
-import { Plus, Edit, Trash2, Search, Filter } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Filter, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getAllMedia, updateMedia, deleteMedia } from "@/services/media";
+import { getAllMedia, updateMedia } from "@/services/media";
 import { GalleryForm } from "@/components/admin/GalleryForm";
 
 const BASE_URL = "https://api.tucasastu.com";
@@ -25,16 +25,18 @@ const ManageGallery = () => {
   const [galleryItems, setGalleryItems] = useState<any[]>([]);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [imageFiles, setImageFiles] = useState<FileList | null>(null);
-  const [formData, setFormData] = useState({
-    event_title: "",
-    Description: "",
-  });
+  const [formData, setFormData] = useState({ event_title: "", Description: "" });
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [loading, setLoading] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // Modal & Delete Image State
+  const [collectionModalOpen, setCollectionModalOpen] = useState(false);
+  const [selectedCollection, setSelectedCollection] = useState<any>(null);
+  const [imageToDelete, setImageToDelete] = useState<{ id: number; path: string } | null>(null);
 
   useEffect(() => {
     fetchGallery();
@@ -53,7 +55,7 @@ const ManageGallery = () => {
     }
   };
 
-  // Add new media
+  // --- ADD MEDIA ---
   const handleAdd = async () => {
     if (!formData.event_title || !imageFiles?.length) {
       toast({
@@ -63,49 +65,35 @@ const ManageGallery = () => {
       });
       return;
     }
-
     setLoading(true);
     try {
       const fd = new FormData();
       fd.append("event_title", formData.event_title);
       if (formData.Description) fd.append("description", formData.Description);
-
-      Array.from(imageFiles).forEach((file) => fd.append("media_files", file));
+      Array.from(imageFiles).forEach((f) => fd.append("media_files", f));
 
       const token = localStorage.getItem("token");
-
-      const response = await fetch("/api/media/create", {
+      const res = await fetch("/api/media/create", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
         body: fd,
       });
+      if (!res.ok) throw new Error((await res.json()).message || "Failed");
+      await res.json();
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to add media.");
-      }
-
-      await response.json();
-
-      toast({ title: "Success", description: "Media added successfully!" });
+      toast({ title: "Success", description: "Media added!" });
       setFormData({ event_title: "", Description: "" });
       setImageFiles(null);
       setIsAddDialogOpen(false);
       fetchGallery();
-    } catch (err: any) {
-      toast({
-        title: "Error",
-        description: err.message,
-        variant: "destructive",
-      });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
-  // Edit media
+  // --- EDIT MEDIA ---
   const openEdit = (item: any) => {
     setSelectedItem(item);
     setFormData({
@@ -123,18 +111,17 @@ const ManageGallery = () => {
       fd.append("event_title", formData.event_title);
       if (formData.Description) fd.append("description", formData.Description);
       if (imageFiles)
-        Array.from(imageFiles).forEach((file) =>
-          fd.append("media_files", file)
-        );
+        Array.from(imageFiles).forEach((f) => fd.append("media_files", f));
 
       await updateMedia(selectedItem.ID, fd);
-      toast({ title: "Updated", description: "Media updated successfully!" });
+      toast({ title: "Updated", description: "Media updated!" });
       setIsEditDialogOpen(false);
       fetchGallery();
-    } catch (err: any) {
+      setCollectionModalOpen(false);
+    } catch (e: any) {
       toast({
         title: "Error",
-        description: err.response?.data?.message || "Failed to update.",
+        description: e.response?.data?.message || "Failed to update.",
         variant: "destructive",
       });
     } finally {
@@ -142,40 +129,72 @@ const ManageGallery = () => {
     }
   };
 
-  // Delete media
-  const handleDelete = async () => {
+  // --- DELETE SINGLE IMAGE FROM COLLECTION ---
+  const handleDeleteImage = async () => {
+    if (!imageToDelete || !selectedCollection) return;
+
+    try {
+      const currentFiles: string[] = JSON.parse(selectedCollection.MediaFiles || "[]");
+      const updatedFiles = currentFiles.filter((f: string) => !f.includes(imageToDelete.path));
+
+      const fd = new FormData();
+      fd.append("event_title", selectedCollection.event_title);
+      if (selectedCollection.Description) fd.append("description", selectedCollection.Description);
+      // Send only remaining files
+      updatedFiles.forEach((f) => fd.append("media_files", f));
+
+      await updateMedia(selectedCollection.ID, fd);
+      toast({ title: "Deleted", description: "Image removed permanently." });
+
+      // FULL REFRESH – NO CACHED IMAGE
+      await fetchGallery();
+      setCollectionModalOpen(false); // Close modal
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to delete image.", variant: "destructive" });
+    } finally {
+      setDeleteDialogOpen(false);
+      setImageToDelete(null);
+    }
+  };
+
+  // --- DELETE ENTIRE COLLECTION ---
+  const handleDeleteCollection = async () => {
     if (!selectedItem) return;
     try {
-      await deleteMedia(selectedItem.ID);
-      toast({ title: "Deleted", description: "Media deleted successfully." });
-      fetchGallery();
-    } catch {
-      toast({
-        title: "Error",
-        description: "Failed to delete media.",
-        variant: "destructive",
+      const res = await fetch(`/api/media/${selectedItem.ID}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
+      if (!res.ok) throw new Error("Failed");
+      toast({ title: "Deleted", description: "Collection deleted." });
+      await fetchGallery();
+      setCollectionModalOpen(false);
+    } catch {
+      toast({ title: "Error", description: "Failed to delete.", variant: "destructive" });
     } finally {
       setDeleteDialogOpen(false);
     }
   };
 
-  const getImageUrls = (item: any) => {
-    const img = item.MediaFiles || item.media_files;
-    if (!img) return [];
-    if (typeof img === "string") {
+  const getImageUrls = (item: any): { url: string; path: string }[] => {
+    const raw = item.MediaFiles || item.media_files;
+    if (!raw) return [];
+
+    let files: string[] = [];
+    if (typeof raw === "string") {
       try {
-        const parsed = JSON.parse(img);
-        return parsed.map(
-          (p: string) => `${BASE_URL}${p.startsWith("/") ? p : `/${p}`}`
-        );
+        files = JSON.parse(raw);
       } catch {
-        return [`${BASE_URL}${img.startsWith("/") ? img : `/${img}`}`];
+        files = [raw];
       }
+    } else if (Array.isArray(raw)) {
+      files = raw;
     }
-    if (Array.isArray(img))
-      return img.map((p) => `${BASE_URL}${p.startsWith("/") ? p : `/${p}`}`);
-    return [];
+
+    return files.map((p: string) => ({
+      url: `${BASE_URL}${p.startsWith("/") ? p : `/${p}`}`,
+      path: p.startsWith("/") ? p : `/${p}`,
+    }));
   };
 
   const filteredItems = Array.isArray(galleryItems)
@@ -188,6 +207,11 @@ const ManageGallery = () => {
         return matchesSearch && matchesCategory;
       })
     : [];
+
+  const openCollectionModal = (item: any) => {
+    setSelectedCollection(item);
+    setCollectionModalOpen(true);
+  };
 
   return (
     <AdminLayout>
@@ -242,18 +266,21 @@ const ManageGallery = () => {
         </div>
 
         {/* Gallery Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredItems.map((item) => {
             const images = getImageUrls(item);
+            const hasMultiple = images.length > 1;
+
             return (
               <Card
                 key={item.ID}
                 className="overflow-hidden hover:shadow-lg transition-shadow duration-200 max-w-md mx-auto"
+                onClick={() => hasMultiple && openCollectionModal(item)}
               >
                 {images.length > 0 ? (
                   <div className="w-full h-64 sm:h-72 md:h-80 lg:h-96 overflow-hidden flex items-center justify-center bg-gray-100">
                     <img
-                      src={images[0]}
+                      src={images[0].url}
                       alt={item.event_title}
                       className="w-full h-full object-contain"
                     />
@@ -263,23 +290,41 @@ const ManageGallery = () => {
                     No Image
                   </div>
                 )}
+
                 <CardContent className="p-4 space-y-1">
                   <h3 className="text-lg font-semibold">{item.event_title}</h3>
                   <p className="text-sm text-muted-foreground">
                     {item.Description || "No description"}
                   </p>
+
                   <div className="flex justify-end gap-2 pt-2">
+                    {hasMultiple && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openCollectionModal(item);
+                        }}
+                      >
+                        View Collection
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => openEdit(item)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEdit(item);
+                      }}
                     >
                       <Edit className="h-4 w-4 mr-1" /> Edit
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setSelectedItem(item);
                         setDeleteDialogOpen(true);
                       }}
@@ -315,11 +360,97 @@ const ManageGallery = () => {
       {/* Delete Confirmation */}
       <ConfirmDialog
         open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen} // <-- pass state setter here
-        onConfirm={handleDelete}
-        title="Delete Media"
-        description="Are you sure you want to delete this media?"
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={imageToDelete ? handleDeleteImage : handleDeleteCollection}
+        title={imageToDelete ? "Delete Image" : "Delete Collection"}
+        description={
+          imageToDelete
+            ? "This image will be permanently removed from the collection."
+            : "This entire collection will be deleted."
+        }
       />
+
+      {/* COLLECTION MODAL */}
+      <Dialog open={collectionModalOpen} onOpenChange={setCollectionModalOpen}>
+        <DialogContent
+          className="max-w-full w-[95vw] h-[90vh] p-0 bg-white rounded-2xl shadow-2xl overflow-hidden"
+          style={{ maxWidth: "1400px" }}
+        >
+          {/* Header */}
+          <DialogHeader className="p-6 pb-4 bg-gradient-to-br from-gray-50 to-white border-b border-gray-100">
+            <div className="flex justify-between items-start">
+              <div className="max-w-3xl">
+                <DialogTitle className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
+                  {selectedCollection?.event_title}
+                </DialogTitle>
+                {selectedCollection?.Description && (
+                  <p className="mt-2 text-sm md:text-base text-gray-600 leading-relaxed max-w-2xl">
+                    {selectedCollection.Description}
+                  </p>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setCollectionModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+              >
+                <X className="h-6 w-6" />
+              </Button>
+            </div>
+          </DialogHeader>
+
+          {/* Image Grid */}
+          <div className="p-4 md:p-6">
+            <div
+              className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 auto-rows-fr"
+              style={{ height: "calc(90vh - 160px)" }}
+            >
+              {selectedCollection &&
+                getImageUrls(selectedCollection).map((img, idx) => (
+                  <div
+                    key={img.path} // Use path as key to avoid duplicates
+                    className="flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+                  >
+                    <div className="flex-1 p-2 flex items-center justify-center bg-gray-50">
+                      <img
+                        src={img.url}
+                        alt={`${selectedCollection.event_title} - ${idx + 1}`}
+                        className="max-w-full max-h-full object-contain rounded-lg"
+                      />
+                    </div>
+
+                    <div className="p-2 flex gap-1 justify-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEdit(selectedCollection);
+                        }}
+                      >
+                        <Edit className="h-3.5 w-3.5 mr-1" /> Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="flex-1 text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setImageToDelete({ id: selectedCollection.ID, path: img.path });
+                          setDeleteDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };

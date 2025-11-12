@@ -1,6 +1,7 @@
-import { ReactNode, useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+// src/layouts/AdminLayout.tsx
+import { ReactNode, useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Users,
@@ -12,9 +13,9 @@ import {
   Menu,
   X,
   LogOut,
-  BarChart3
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+  BarChart3,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -24,45 +25,53 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // -----------------------------------------------------------------
+  // 1. Listen for global session-expired event (dispatched by api.ts)
+  // -----------------------------------------------------------------
   useEffect(() => {
-    // Check authentication
-    const authToken = localStorage.getItem('token');
-    if (!authToken) {
-      navigate('/admin/login');
-    } else {
-      setIsAuthenticated(true);
-    }
+    const handler = () => {
+      // Clear everything and go to login (modal will also appear)
+      localStorage.clear();
+      navigate("/admin/login", { replace: true });
+    };
+    window.addEventListener("sessionExpired", handler);
+    return () => window.removeEventListener("sessionExpired", handler);
   }, [navigate]);
 
+  // -----------------------------------------------------------------
+  // 2. Logout button (manual logout – same as before but clears all)
+  // -----------------------------------------------------------------
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/admin/login');
+    localStorage.clear();
+    navigate("/admin/login", { replace: true });
   };
 
+  // -----------------------------------------------------------------
+  // 3. Menu items – unchanged
+  // -----------------------------------------------------------------
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
-    { icon: BarChart3, label: 'Analytics', path: '/admin/analytics' },
-    { icon: Users, label: 'Leaders', path: '/admin/leaders' },
-    { icon: Bell, label: 'Announcements', path: '/admin/announcements' },
-    { icon: Image, label: 'Gallery', path: '/admin/gallery' },
-    { icon: Calendar, label: 'Events & Calendar', path: '/admin/events' },
-    { icon: BookOpen, label: 'Book of Year', path: '/admin/book' },
+    { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
+    { icon: BarChart3, label: "Analytics", path: "/admin/analytics" },
+    { icon: Users, label: "Leaders", path: "/admin/leaders" },
+    { icon: Bell, label: "Announcements", path: "/admin/announcements" },
+    { icon: Image, label: "Gallery", path: "/admin/gallery" },
+    { icon: Calendar, label: "Events & Calendar", path: "/admin/events" },
+    { icon: BookOpen, label: "Book of Year", path: "/admin/book" },
   ];
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
+  // -----------------------------------------------------------------
+  // 4. Render – **design 100% identical**
+  // -----------------------------------------------------------------
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
-      <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 bg-card border-r border-border transition-all duration-300",
-        sidebarOpen ? "w-64" : "w-16"
-      )}>
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 bg-card border-r border-border transition-all duration-300",
+          sidebarOpen ? "w-64" : "w-16"
+        )}
+      >
         <div className="h-full flex flex-col">
           {/* Logo */}
           <div className="h-16 flex items-center justify-between px-4 border-b border-border">
@@ -92,7 +101,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
-              
+
               return (
                 <Link key={item.path} to={item.path}>
                   <Button
@@ -140,10 +149,12 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       </aside>
 
       {/* Main Content */}
-      <main className={cn(
-        "flex-1 transition-all duration-300",
-        sidebarOpen ? "ml-64" : "ml-16"
-      )}>
+      <main
+        className={cn(
+          "flex-1 transition-all duration-300",
+          sidebarOpen ? "ml-64" : "ml-16"
+        )}
+      >
         {children}
       </main>
     </div>
